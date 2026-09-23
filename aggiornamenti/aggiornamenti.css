@@ -1,11 +1,18 @@
 .updates-hero{background:linear-gradient(120deg,#f7f9fc,#eaf0fb);padding:clamp(4rem,7vw,7rem) 0}
 .updates-hero h1{font-size:clamp(2.9rem,5vw,5.2rem);max-width:none}
 .updates-hero .page-lead{max-width:1050px}
-.updates-index{padding-top:3.5rem;padding-bottom:3.5rem}
-.updates-index h2{margin-bottom:1.5rem}
-.updates-links{display:flex;flex-wrap:wrap;gap:.75rem}
-.updates-links a{display:inline-block;padding:.85rem 1.2rem;border:1px solid #b9cae1;color:#10234a;text-decoration:none;font-weight:700}
-.updates-links a:hover,.updates-links a:focus-visible{background:#e8effa}
+.updates-index{padding-top:clamp(3rem,5vw,5rem);padding-bottom:clamp(3rem,5vw,5rem);background:#fff}
+.updates-index-heading{margin-bottom:2rem}
+.updates-index-heading h2{margin-bottom:.6rem}
+.updates-index-heading>p:last-child{max-width:830px;margin-bottom:0;font-size:1.08rem}
+.updates-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem}
+.updates-links a{display:flex;flex-direction:column;align-items:flex-start;min-height:260px;padding:clamp(1.5rem,2.5vw,2.5rem);border:1px solid #d8e1ee;border-top:4px solid #2454c6;background:#f7f9fc;color:#10234a;text-decoration:none;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.updates-links a:hover,.updates-links a:focus-visible{background:#edf3fc;border-color:#2454c6;transform:translateY(-3px)}
+.updates-card-meta{display:block;color:#2454c6;font-size:.8rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem}
+.updates-links strong{display:block;font-size:clamp(1.4rem,2vw,1.9rem);line-height:1.2;margin-bottom:.8rem}
+.updates-card-desc{display:block;max-width:500px;line-height:1.6;color:#344967}
+.updates-card-action{display:block;margin-top:auto;padding-top:1.4rem;font-weight:750;color:#1745a7}
+.updates-card-action span{padding-left:.3rem}
 .update-section{scroll-margin-top:5rem}
 .update-heading{margin-bottom:2.5rem}
 .update-heading h2{max-width:none}
@@ -25,4 +32,4 @@
 .update-copy p{margin:0 0 1.3rem;break-inside:avoid}
 .update-copy h3{margin:1.5rem 0 .7rem;break-after:avoid}
 .update-copy h3:first-child{margin-top:0}
-@media(max-width:780px){.rovigo-content{grid-template-columns:1fr}.update-copy{columns:1}.updates-hero{padding:3.5rem 0}.update-heading p{font-size:1rem}}
+@media(max-width:780px){.updates-links{grid-template-columns:1fr}.updates-links a{min-height:230px}.rovigo-content{grid-template-columns:1fr}.update-copy{columns:1}.updates-hero{padding:3.5rem 0}.update-heading p{font-size:1rem}}
