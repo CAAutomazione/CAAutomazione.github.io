@@ -1,10 +1,8 @@
 const preview = location.hostname.endsWith('github.io');
-if (preview) {
-  document.querySelectorAll('.form-panel').forEach(form => {
-    form.querySelector('button[type=submit]').disabled = true;
-    form.querySelector('[data-preview-note]').hidden = false;
-  });
-}
+document.querySelectorAll('.form-panel').forEach(form => {
+  form.querySelector('button[type=submit]').disabled = preview;
+  form.querySelector('[data-preview-note]').hidden = !preview;
+});
 const form = document.querySelector('[data-cv-form]');
 const fileInput = document.querySelector('[data-cv-file]');
 const error = document.querySelector('[data-file-error]');
