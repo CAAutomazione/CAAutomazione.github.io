@@ -29,3 +29,11 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 - Il conteggio della quota attualmente usa la somma dei file attivi di questa applicazione; occorre integrare la misura di spazio reale di Tophost se la quota include anche sito, posta o altri contenuti.
 - L'eliminazione attuale è immediata e singola; definire recupero/retention e backup prima di usare documenti reali.
 - Caricare solo i tipi consentiti dal codice; dimensione massima predefinita 30 MiB, da allineare a `upload_max_filesize` e `post_max_size`.
+
+## Account, privacy e accessi
+
+La schermata amministrativa mostra nome, email, azienda, impianti, stato e ultimo accesso; lo storico registra data, indirizzo IP visto dal server e user agent. L'IP **non prova la posizione geografica**. Definire nella privacy policy la conservazione dei log e limitare l'accesso ai soli amministratori.
+
+Le password sono memorizzate solo come hash e non possono essere lette. L'amministratore può reimpostarle e usare **Entra come cliente** per consultare la stessa vista, con evento di audit. In tale modalità il download è disattivato, così l'amministratore non genera falsi eventi attribuiti al cliente. L'account cliente può essere rimosso: l'accesso e le sessioni cessano, mentre i record storici restano per la politica di conservazione ancora da definire.
+
+Alla prima autenticazione viene richiesta la presa visione dell'informativa privacy. Se l'utente spunta **Ricorda la presa visione**, l'accettazione e la versione dell'informativa vengono registrate nel database e la richiesta non si ripete finché la versione resta la stessa. La versione va aggiornata in `config.php` quando cambia l'informativa. È una conferma di lettura, non un consenso generico al trattamento.
