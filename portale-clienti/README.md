@@ -15,15 +15,15 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 ## Funzioni della prima versione
 
 - Login con password hash, sessione e CSRF; amministratore e cliente distinti.
-- Creazione aziende, impianti e account personali; account disattivabili. Creazione con password iniziale da consegnare tramite canale sicuro; cambio password dall'account.
+- Creazione aziende, impianti e account personali; modifica nome/email, aggiunta e rimozione impianti autorizzati, disattivazione e reimpostazione password. Recupero autonomo password tramite link monouso valido 30 minuti; cambio password dall’account e invalidazione delle sessioni precedenti.
 - Upload di un file per un destinatario identificato con nome, cognome ed email e un impianto. File archiviati con nome casuale fuori dal web.
 - Lista personale dei documenti da scaricare e archivio dopo il primo avvio di download. Anteprima e download richiedono autorizzazione lato server; cliente senza azioni di modifica.
 - Log dei download e coda email per avviso di consegna, avviso all'amministratore e soglia residua di 2 GiB.
-- Lista amministrativa per data ed eliminazione singola. Revoca disponibile nel codice ma ancora da esporre nella schermata.
+- Lista amministrativa per data, eliminazione multipla con conferma, modifica del titolo e revoca dell’accesso.
 
 ## Limiti da risolvere prima del rilascio
 
-- **Non è un portale pronto alla produzione.** Mancano flusso di invito e recupero password, gestione completa di modifica di account e permessi, selezione multipla per eliminazione, quote reali del piano e test di integrazione su Tophost.
+- **Non è un portale pronto alla produzione.** Mancano invito iniziale senza password comunicata a parte, modifica dell’azienda di un account, gestione della conservazione e recupero dopo eliminazione, misurazione della quota reale del piano e test di integrazione su Tophost.
 - La password iniziale è inserita dall'amministratore e va consegnata con canale separato e sicuro. Non inviarla per email in chiaro.
 - La notifica di download attesta l'avvio del trasferimento dal server, non che il browser abbia salvato l'intero file.
 - Il conteggio della quota attualmente usa la somma dei file attivi di questa applicazione; occorre integrare la misura di spazio reale di Tophost se la quota include anche sito, posta o altri contenuti.
