@@ -18,7 +18,15 @@ status=$(curl -s -b bob.cookie -o denied.txt -w '%{http_code}' "http://localhost
 login carla@example.invalid carla.cookie
 status=$(curl -s -b carla.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Cross-plant access: $status"; exit 1; }
+curl -s -c first.cookie -b first.cookie http://localhost:8000/ > first-login.html
+first_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' first-login.html | head -1)
+status=$(curl -s -c first.cookie -b first.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$first_token" --data-urlencode 'email=alice@example.invalid' --data-urlencode 'password=test-password-1234' 'http://localhost:8000/?action=login')
+[ "$status" = 400 ] || { echo "Privacy acknowledgement not required on first login: $status"; exit 1; }
 login alice@example.invalid alice.cookie
+curl -s -c remembered.cookie -b remembered.cookie http://localhost:8000/ > remembered-login.html
+remembered_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' remembered-login.html | head -1)
+status=$(curl -s -c remembered.cookie -b remembered.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$remembered_token" --data-urlencode 'email=alice@example.invalid' --data-urlencode 'password=test-password-1234' 'http://localhost:8000/?action=login')
+[ "$status" = 303 ] || { echo "Remembered privacy acknowledgement not honored: $status"; exit 1; }
 status=$(curl -s -b alice.cookie -o delivered.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 200 ] && [ "$(cat delivered.txt)" = 'private test document' ] || { echo "Authorized download failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FROM documents WHERE id=1"); $e=Portal\Core::row("SELECT COUNT(*) n FROM download_events WHERE document_id=1"); if (!$d["first_download_at"] || $e["n"]!=1) exit(1);'
@@ -36,5 +44,5 @@ curl -s -o /dev/null -c admin.cookie -b admin.cookie -d "_csrf=$token" 'http://l
 curl -s -o /dev/null -c admin.cookie -b admin.cookie -d "_csrf=$token&id=$alice_id" 'http://localhost:8000/?action=remove_user'
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 401 ] || { echo "Removed account still has access: $status"; exit 1; }
-php -r 'require "src/Core.php"; $u=Portal\Core::row("SELECT privacy_accepted_at FROM users WHERE email=?",["alice@example.invalid"]); $e=Portal\Core::row("SELECT COUNT(*) n FROM access_events WHERE user_id=(SELECT id FROM users WHERE email=?)",["alice@example.invalid"]); if (!$u["privacy_accepted_at"] || $e["n"]!=1) exit(1);'
+php -r 'require "src/Core.php"; $u=Portal\Core::row("SELECT privacy_accepted_at FROM users WHERE email=?",["alice@example.invalid"]); $e=Portal\Core::row("SELECT COUNT(*) n FROM access_events WHERE user_id=(SELECT id FROM users WHERE email=?)",["alice@example.invalid"]); if (!$u["privacy_accepted_at"] || $e["n"]!=2) exit(1);'
 echo 'Authorization and archive smoke tests passed.'
