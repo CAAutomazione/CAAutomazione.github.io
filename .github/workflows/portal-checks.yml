@@ -13,6 +13,19 @@ on:
 jobs:
   php:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpass
+          MYSQL_DATABASE: portal_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ptestpass"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -24,3 +37,6 @@ jobs:
         run: composer validate --strict
       - name: Check PHP syntax
         run: find portale-clienti -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Check document authorization across companies
+        working-directory: portale-clienti
+        run: bash tests/smoke.sh
