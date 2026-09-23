@@ -1,1 +1,14 @@
-{"name":"caautomazione/area-clienti","description":"Portale riservato per la consegna dei documenti","require":{"php":"^8.2","phpmailer/phpmailer":"^6.9"},"autoload":{"psr-4":{"Portal\\":"src/"}}}
+{
+  "name": "caautomazione/area-clienti",
+  "description": "Portale riservato per la consegna dei documenti",
+  "require": {
+    "php": "^8.2",
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Portal\\": "src/"
+    }
+  },
+  "license": "proprietary"
+}
