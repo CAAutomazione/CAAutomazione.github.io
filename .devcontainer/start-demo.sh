@@ -23,5 +23,17 @@ return [
 PHP
 fi
 composer install --no-dev --no-interaction --prefer-dist
+ready=0
+for attempt in $(seq 1 45); do
+  if php -r 'require "src/Core.php"; try { Portal\Core::db(); exit(0); } catch (Throwable $e) { exit(1); }'; then
+    ready=1
+    break
+  fi
+  sleep 2
+done
+if [ "$ready" != 1 ]; then
+  echo 'Database dimostrativo non raggiungibile dopo 90 secondi.' >&2
+  exit 1
+fi
 php tests/demo-seed.php
 exec php -S 0.0.0.0:8000 -t public
