@@ -1,3 +1,7 @@
+# Prova immediata
+
+Apri [PROVA.md](PROVA.md) per avviare l’ambiente dimostrativo su GitHub con account e documenti fittizi.
+
 # Portale Area Clienti — prima versione implementata
 
 Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database o `config.php` nel repository pubblico. Il prototipo richiede PHP 8.2+, MySQL 8, estensioni PDO MySQL, mbstring e fileinfo, Composer e SMTP. Richiede configurazione e collaudo su server prima dell'uso con dati reali.

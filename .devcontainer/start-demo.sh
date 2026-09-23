@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /workspace/portale-clienti
+if [ ! -f config.php ]; then
+cat > config.php <<'PHP'
+<?php
+return [
+ 'db_dsn'=>'mysql:host=db;dbname=portal_demo;charset=utf8mb4',
+ 'db_user'=>'portal_demo', 'db_password'=>'demo-only-password',
+ 'base_url'=>'http://localhost:8000',
+ 'storage_path'=>'/private-documents',
+ 'max_upload_bytes'=>30*1024*1024,
+ 'capacity_bytes'=>10*1024*1024*1024,
+ 'alert_remaining_bytes'=>2*1024*1024*1024,
+ 'privacy_version'=>'2026-09-23',
+ 'admin_email'=>'demo-admin@example.invalid',
+ 'mail_from'=>'demo-admin@example.invalid',
+ 'smtp_host'=>'not-configured.invalid', 'smtp_port'=>587,
+ 'smtp_user'=>'', 'smtp_password'=>'',
+ 'cron_secret'=>'demo-only',
+ 'allow_http_preview'=>true,
+];
+PHP
+fi
+composer install --no-dev --no-interaction --prefer-dist
+php tests/demo-seed.php
+exec php -S 0.0.0.0:8000 -t public

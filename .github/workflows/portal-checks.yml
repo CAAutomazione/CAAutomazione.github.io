@@ -40,3 +40,18 @@ jobs:
       - name: Check document authorization across companies
         working-directory: portale-clienti
         run: bash tests/smoke.sh
+      - name: Build and start interactive demo
+        run: docker compose -f .devcontainer/docker-compose.yml up -d --build
+      - name: Verify demo login screen
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/ | grep -q 'Area Clienti'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f .devcontainer/docker-compose.yml logs app
+          exit 1
+      - name: Stop demo
+        if: always()
+        run: docker compose -f .devcontainer/docker-compose.yml down -v || true
