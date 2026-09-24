@@ -77,6 +77,7 @@ php -r 'require "src/Core.php"; foreach (["Rapporto prova.txt", "Relazione clien
 login caniatoa@libero.it admin.cookie
 curl -s -b admin.cookie 'http://localhost:8000/?tab=archive' > admin-archive.html
 if grep -q 'Documenti consegnati' admin-archive.html; then echo 'Duplicate delivered-documents table in archive'; exit 1; fi
+if ! grep -q 'Seleziona i file della cartella' admin-archive.html || ! grep -q 'data-folder="[^"]*Prova"' admin-archive.html; then echo 'Folder files missing from archive'; exit 1; fi
 
 alice_id=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
 curl -s -b admin.cookie http://localhost:8000/ > admin.html
