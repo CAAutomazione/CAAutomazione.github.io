@@ -9,6 +9,10 @@ id=$(php tests/seed.php)
 php -S localhost:8000 -t public > server-test.log 2>&1 & server=$!
 trap 'kill "$server" 2>/dev/null || true; rm -f config.php server-test.log' EXIT
 for i in {1..20}; do curl -fsS http://localhost:8000/ >/dev/null && break || sleep 1; done
+php -r 'require "src/Core.php"; Portal\Core::db()->exec("ALTER TABLE documents DROP COLUMN manual_access, DROP COLUMN max_downloads, DROP COLUMN retention_days");'
+status=$(curl -s -o upgrade.html -w '%{http_code}' http://localhost:8000/)
+[ "$status" = 503 ] && grep -q 'Aggiornamento del database necessario' upgrade.html && ! grep -q 'Warning:' upgrade.html || { echo 'Outdated database does not show a clean upgrade notice'; exit 1; }
+php -r 'require "src/Core.php"; foreach (explode("\n",file_get_contents("sql/004-document-access.sql")) as $line) { $line=trim($line); if ($line!=="" && !str_starts_with($line,"--")) Portal\Core::db()->exec($line); }'
 status=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 401 ] || { echo "Expected unauthenticated rejection, got $status"; exit 1; }
 login(){ local email="$1" cookie="$2" token;curl -s -c "$cookie" -b "$cookie" http://localhost:8000/ > login.html;token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' login.html | head -1);curl -s -o /dev/null -c "$cookie" -b "$cookie" -d "_csrf=$token" --data-urlencode "email=$email" --data-urlencode 'password=test-password-1234' -d 'privacy_read=1&remember_privacy=1' 'http://localhost:8000/?action=login';}
