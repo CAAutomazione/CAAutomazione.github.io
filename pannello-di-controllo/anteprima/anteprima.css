@@ -1,0 +1,6 @@
+.preview-banner { display:flex; align-items:center; gap:1rem; padding:1rem 1.25rem; margin:0 0 1.25rem; border:1px solid #b9cfed; border-radius:12px; background:#eaf2ff; color:#203f70; }
+.preview-banner strong { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; }
+.preview-banner span { font-size:.9rem; line-height:1.5; }
+.preview-hint { font-size:.89rem; background:#edf3ff; color:#21446f; border-radius:8px; padding:.8rem 1rem; }
+[hidden] { display:none !important; }
+@media(max-width:600px) { .preview-banner { align-items:start; flex-direction:column; gap:.3rem; } }

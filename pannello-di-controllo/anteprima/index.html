@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Anteprima pannello di controllo | C.A. Automazione</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/pannello-di-controllo/dashboard.css?v=1">
+  <link rel="stylesheet" href="/pannello-di-controllo/anteprima/anteprima.css?v=1">
+  <script src="/pannello-di-controllo/anteprima/anteprima.js?v=1" defer></script>
+</head>
+<body>
+  <header class="admin-header">
+    <a class="admin-brand" href="/"><img src="/images/brand/logo-square.png" alt="" width="46" height="46"><span><strong>C.A. Automazione</strong><small>Pannello di controllo</small></span></a>
+    <nav class="top-actions" aria-label="Navigazione anteprima"><a href="/" target="_blank" rel="noopener">Apri il sito ↗</a><button type="button" id="logout" hidden>Esci</button></nav>
+  </header>
+
+  <main class="auth-wrap" id="accesso">
+    <section class="auth-card">
+      <p class="eyebrow">Anteprima riservata</p>
+      <h1>Accedi al pannello</h1>
+      <p>Esplora l'interfaccia con dati dimostrativi. Nessun dato reale del sito viene mostrato in questa anteprima.</p>
+      <p class="alert" id="login-error" role="alert" hidden>Controlla email e password dell'anteprima.</p>
+      <form id="login-form" autocomplete="off">
+        <label>Email<input type="email" name="email" autocomplete="username" required></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+        <div class="auth-actions"><button class="primary" type="submit">Accedi</button><button class="secondary" type="button" id="recover">Password dimenticata?</button></div>
+      </form>
+      <p class="preview-hint" id="recover-hint" role="status" hidden>Il recupero tramite email è disponibile nel pannello reale su Tophost. In questa anteprima usa la password dimostrativa concordata.</p>
+    </section>
+  </main>
+
+  <main class="dashboard" id="dashboard" hidden>
+    <div class="dashboard-intro"><div><p class="eyebrow">Area amministratore · anteprima</p><h1>Panoramica del sito</h1><p>Dati dimostrativi per valutare impaginazione e funzionalità.</p></div><span class="user-chip">caniatoa@libero.it</span></div>
+    <div class="preview-banner" role="note"><strong>Anteprima</strong><span>Numeri, accessi e impostazioni qui sotto sono esempi. Il pannello reale mostrerà dati raccolti dopo l'attivazione su Tophost.</span></div>
+    <div class="stat-grid">
+      <article class="stat-card"><span>Visite stimate</span><strong>1.284</strong><small>Ultimi 30 giorni · esempio</small></article>
+      <article class="stat-card"><span>Pagine visualizzate</span><strong>2.916</strong><small>Ultimi 30 giorni · esempio</small></article>
+      <article class="stat-card"><span>Richieste ricevute</span><strong>18</strong><small>Ultimi 30 giorni · esempio</small></article>
+      <article class="stat-card"><span>CV ricevuti</span><strong>7</strong><small>Ultimi 30 giorni · esempio</small></article>
+    </div>
+    <div class="dashboard-columns">
+      <section class="panel chart-panel"><div class="panel-heading"><div><p class="eyebrow">Andamento</p><h2>Visite giornaliere</h2></div><span>Ultimi 14 giorni · dati simulati</span></div><div class="chart" role="img" aria-label="Grafico dimostrativo delle visite negli ultimi 14 giorni" id="demo-chart"></div><p class="chart-note">Il grafico reale mostrerà una stima delle visite giornaliere quando il conteggio sarà abilitato.</p></section>
+      <section class="panel"><p class="eyebrow">Invii</p><h2>Contatti e candidature</h2><p>Le richieste inviate dal modulo e i curriculum ricevuti saranno riepilogati qui.</p><div class="mini-stat"><span>Richieste</span><strong>18</strong></div><div class="mini-stat"><span>Curriculum</span><strong>7</strong></div><a class="text-link" href="/contatti/" target="_blank" rel="noopener">Apri la pagina contatti ↗</a></section>
+    </div>
+    <div class="dashboard-columns">
+      <section class="panel" id="impostazioni"><p class="eyebrow">Configurazione</p><h2>Impostazioni del sito</h2><form id="settings-form"><label class="check"><input type="checkbox" name="analytics" value="1"><span><strong>Conteggio delle visite</strong><small>Abilita il conteggio dopo aver completato l'informativa privacy.</small></span></label><label class="check"><input type="checkbox" name="forms_paused" value="1"><span><strong>Sospendi gli invii dai moduli</strong><small>Il sito fermerà temporaneamente richieste e candidature.</small></span></label><label>Conservazione dei conteggi e del registro<select name="retention"><option value="30">30 giorni</option><option value="90" selected>90 giorni</option><option value="180">180 giorni</option></select></label><button class="primary" type="submit">Salva impostazioni</button><p class="success" id="settings-feedback" role="status" hidden>In questa anteprima le impostazioni cambiano solo sullo schermo.</p></form></section>
+      <section class="panel"><p class="eyebrow">Protezione account</p><h2>Cambia la password</h2><p>Nel pannello reale il cambio password invaliderà le sessioni precedenti. Ogni nuovo accesso riuscito invierà un avviso email.</p><form id="password-form"><label>Password attuale<input type="password" autocomplete="current-password" required></label><label>Nuova password, almeno 14 caratteri<input type="password" autocomplete="new-password" minlength="14" required></label><button class="primary" type="submit">Aggiorna password</button><p class="preview-hint" id="password-feedback" role="status" hidden>La password dell'anteprima non viene modificata. Questa azione funzionerà nel pannello reale.</p></form></section>
+    </div>
+    <section class="panel access-panel"><div class="panel-heading"><div><p class="eyebrow">Sicurezza</p><h2>Registro degli accessi</h2></div><span>Esempi · UTC</span></div><div class="table-scroll"><table><thead><tr><th>Data e ora</th><th>Esito</th><th>Account</th><th>Indirizzo IP</th><th>Browser dichiarato</th></tr></thead><tbody><tr><td>24/09/2026 09:12</td><td><span class="badge ok">Riuscito</span></td><td>caniatoa@libero.it</td><td>192.0.2.15</td><td>Chrome · desktop (esempio)</td></tr><tr><td>23/09/2026 18:40</td><td><span class="badge bad">Respinto</span></td><td>esempio@example.test</td><td>198.51.100.8</td><td>Firefox · desktop (esempio)</td></tr><tr><td>23/09/2026 08:31</td><td><span class="badge ok">Riuscito</span></td><td>caniatoa@libero.it</td><td>203.0.113.11</td><td>Safari · mobile (esempio)</td></tr></tbody></table></div><p class="chart-note">Gli indirizzi IP riportati sono riservati alla documentazione e non corrispondono ad accessi reali.</p></section>
+  </main>
+</body>
+</html>
