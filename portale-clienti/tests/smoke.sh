@@ -30,6 +30,13 @@ status=$(curl -s -c remembered.cookie -b remembered.cookie -o /dev/null -w '%{ht
 status=$(curl -s -b alice.cookie -o delivered.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 200 ] && [ "$(cat delivered.txt)" = 'private test document' ] || { echo "Authorized download failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FROM documents WHERE id=1"); $e=Portal\Core::row("SELECT COUNT(*) n FROM download_events WHERE document_id=1"); if (!$d["first_download_at"] || $e["n"]!=1) exit(1);'
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["max_downloads"]);'
+status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
+[ "$status" = 404 ] || { echo "Download limit bypassed: $status"; exit 1; }
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET created_at=UTC_TIMESTAMP()-INTERVAL 10 DAY WHERE id=1");'
+status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=view&id=$id")
+[ "$status" = 404 ] || { echo "Document retention bypassed: $status"; exit 1; }
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET created_at=UTC_TIMESTAMP() WHERE id=1");'
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE documents SET revoked_at=UTC_TIMESTAMP() WHERE id=1");'
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Revoked document still available: $status"; exit 1; }
