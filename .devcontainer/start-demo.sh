@@ -8,7 +8,7 @@ return [
  'db_dsn'=>'mysql:host=db;dbname=portal_demo;charset=utf8mb4',
  'db_user'=>'portal_demo', 'db_password'=>'demo-only-password',
  'base_url'=>'http://localhost:8000',
- 'site_url'=>'https://caautomazione.github.io/',
+ 'site_url'=>'https://caniatoautomazione.com/',
  'privacy_url'=>'https://caautomazione.github.io/privacy/',
  'storage_path'=>'/private-documents',
  'max_upload_bytes'=>30*1024*1024,
@@ -24,6 +24,8 @@ return [
 ];
 PHP
 fi
+# Aggiorna il collegamento anche nei Codespaces già creati.
+sed -i "s#'site_url'=>'https://caautomazione.github.io/'#'site_url'=>'https://caniatoautomazione.com/'#" config.php
 # Compatibilità con i Codespaces creati prima dell'aggiunta del ruolo operatore.
 if grep -q "'admin_email'=>'demo-admin@example.invalid'" config.php; then
   sed -i "s/'admin_email'=>'demo-admin@example.invalid'/'admin_email'=>'presentazione@example.invalid'/" config.php
