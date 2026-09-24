@@ -12,6 +12,11 @@ function documentInfo(array $d): string {$max=(int)$d['max_downloads'];$days=(in
 function document(int $id,array $u): array|false {$doc=C::row('SELECT d.* FROM documents d JOIN users r ON r.id=d.recipient_id AND r.active=1 AND r.deleted_at IS NULL JOIN companies c ON c.id=d.company_id AND c.active=1 JOIN plants p ON p.id=d.plant_id AND p.active=1 WHERE d.id=? AND d.deleted_at IS NULL AND d.revoked_at IS NULL AND ( ? IN (\'admin\',\'operator\') OR (d.recipient_id=? AND d.company_id=? AND EXISTS(SELECT 1 FROM user_plants up WHERE up.user_id=? AND up.plant_id=d.plant_id)))',[$id,$u['role'],$u['id'],$u['company_id'],$u['id']]);return $doc&&($u['role']!=='client'||C::available($doc))?$doc:false;}
 try {
  C::session();$action=(string)($_GET['action']??'');
+ if(!C::row("SHOW COLUMNS FROM documents LIKE 'manual_access'")){
+  http_response_code(503);
+  $help=getenv('PORTAL_DEMO')==='1'?'Nel terminale del Codespace esegui <code>cd /workspace/portale-clienti &amp;&amp; php tests/demo-seed.php</code>, poi aggiorna questa pagina.':'Applica la migrazione sql/004-document-access.sql dopo un backup del database.';
+  page('Aggiornamento necessario','<section class="card narrow"><h1>Aggiornamento del database necessario</h1><p>Il codice del portale è stato aggiornato, ma mancano ancora le nuove colonne nel database.</p><p>'.$help.'</p></section>');exit;
+ }
  if($_SERVER['REQUEST_METHOD']==='POST'){
  C::checkCsrf();
  if($action==='login'){
