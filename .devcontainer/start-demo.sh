@@ -15,7 +15,7 @@ return [
  'capacity_bytes'=>10*1024*1024*1024,
  'alert_remaining_bytes'=>2*1024*1024*1024,
  'privacy_version'=>'2026-09-23',
- 'admin_email'=>'demo-admin@example.invalid',
+ 'admin_email'=>'caniatoa@libero.it',
  'mail_from'=>'demo-admin@example.invalid',
  'smtp_host'=>'not-configured.invalid', 'smtp_port'=>587,
  'smtp_user'=>'', 'smtp_password'=>'',
