@@ -12,6 +12,7 @@ return [
  'privacy_url'=>'https://caautomazione.github.io/privacy/',
  'storage_path'=>'/private-documents',
  'max_upload_bytes'=>30*1024*1024,
+ 'max_request_bytes'=>100*1024*1024,
  'capacity_bytes'=>10*1024*1024*1024,
  'alert_remaining_bytes'=>2*1024*1024*1024,
  'privacy_version'=>'2026-09-23',
