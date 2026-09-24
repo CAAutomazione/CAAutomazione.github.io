@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 cat > config.php <<'PHP'
 <?php
-return ['db_dsn'=>'mysql:host=127.0.0.1;dbname=portal_test;charset=utf8mb4','db_user'=>'root','db_password'=>'testpass','base_url'=>'http://localhost:8000','storage_path'=>sys_get_temp_dir().'/portal-test-docs','max_upload_bytes'=>31457280,'capacity_bytes'=>null,'alert_remaining_bytes'=>2147483648,'admin_email'=>'caniatoa@libero.it','mail_from'=>'admin@example.invalid','smtp_host'=>'localhost','smtp_port'=>587,'smtp_user'=>'','smtp_password'=>'','privacy_version'=>'2026-09-23','cron_secret'=>'test-only'];
+return ['db_dsn'=>'mysql:host=127.0.0.1;dbname=portal_test;charset=utf8mb4','db_user'=>'root','db_password'=>'testpass','base_url'=>'http://localhost:8000','storage_path'=>sys_get_temp_dir().'/portal-test-docs','max_upload_bytes'=>31457280,'capacity_bytes'=>null,'alert_remaining_bytes'=>2147483648,'admin_email'=>'caniatoa@libero.it','mail_from'=>'admin@example.invalid','smtp_host'=>'localhost','smtp_port'=>587,'smtp_user'=>'','smtp_password'=>'','privacy_version'=>'2026-09-23','cron_secret'=>'test-only-secret-at-least-thirty-two-chars','setup_secret'=>'test-only-setup-at-least-thirty-two-chars'];
 PHP
 id=$(php tests/seed.php)
 php -S localhost:8000 -t public > server-test.log 2>&1 & server=$!
@@ -16,6 +16,12 @@ php -r 'require "src/Core.php"; Portal\Core::db()->exec("ALTER TABLE documents D
 status=$(curl -s -o upgrade.html -w '%{http_code}' http://localhost:8000/)
 [ "$status" = 503 ] && grep -q 'Aggiornamento del database necessario' upgrade.html && ! grep -q 'Warning:' upgrade.html || { echo 'Outdated database does not show a clean upgrade notice'; exit 1; }
 php -r 'require "src/Core.php"; foreach (explode("\n",file_get_contents("sql/004-document-access.sql")) as $line) { $line=trim($line); if ($line!=="" && !str_starts_with($line,"--")) Portal\Core::db()->exec($line); }'
+status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/?action=setup)
+[ "$status" = 404 ] || { echo 'Setup available after administrator exists'; exit 1; }
+status=$(curl -s -o /dev/null -w '%{http_code}' -X POST 'http://localhost:8000/?action=jobs')
+[ "$status" = 404 ] || { echo 'Unauthenticated job request accepted'; exit 1; }
+status=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'X-Portal-Job-Key: test-only-secret-at-least-thirty-two-chars' 'http://localhost:8000/?action=jobs')
+[ "$status" = 204 ] || { echo "Authenticated job request failed: $status"; exit 1; }
 status=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 401 ] || { echo "Expected unauthenticated rejection, got $status"; exit 1; }
 login(){ local email="$1" cookie="$2" token;curl -s -c "$cookie" -b "$cookie" http://localhost:8000/ > login.html;token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' login.html | head -1);curl -s -o /dev/null -c "$cookie" -b "$cookie" -d "_csrf=$token" --data-urlencode "email=$email" --data-urlencode 'password=test-password-1234' -d 'privacy_read=1&remember_privacy=1' 'http://localhost:8000/?action=login';}
@@ -116,4 +122,13 @@ curl -s -o /dev/null -c admin.cookie -b admin.cookie -d "_csrf=$token&id=$alice_
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 401 ] || { echo "Removed account still has access: $status"; exit 1; }
 php -r 'require "src/Core.php"; $u=Portal\Core::row("SELECT privacy_accepted_at FROM users WHERE email=?",["alice@example.invalid"]); $e=Portal\Core::row("SELECT COUNT(*) n FROM access_events WHERE user_id=(SELECT id FROM users WHERE email=?)",["alice@example.invalid"]); if (!$u["privacy_accepted_at"] || $e["n"]!=2) exit(1);'
+php -r '$p=new PDO("mysql:host=127.0.0.1;charset=utf8mb4","root","testpass");$p->exec("CREATE DATABASE portal_setup_test CHARACTER SET utf8mb4");$p->exec("USE portal_setup_test");foreach(explode("\n",file_get_contents("sql/schema.sql")) as $line){$line=trim($line);if($line!=="")$p->exec($line);}'
+sed -i 's/dbname=portal_test;/dbname=portal_setup_test;/' config.php
+curl -s -c setup.cookie -b setup.cookie 'http://localhost:8000/?action=setup' > setup.html
+setup_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' setup.html | head -1)
+[ -n "$setup_token" ] || { echo 'One-time setup form missing'; exit 1; }
+status=$(curl -s -c setup.cookie -b setup.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$setup_token" --data-urlencode 'setup_secret=test-only-setup-at-least-thirty-two-chars' --data-urlencode 'first_name=Test' --data-urlencode 'last_name=Admin' --data-urlencode 'password=test-password-1234' 'http://localhost:8000/?action=setup')
+[ "$status" = 303 ] || { echo "One-time setup failed: $status"; exit 1; }
+status=$(curl -s -o /dev/null -w '%{http_code}' 'http://localhost:8000/?action=setup')
+[ "$status" = 404 ] || { echo 'Setup remains open after activation'; exit 1; }
 echo 'Authorization and archive smoke tests passed.'
