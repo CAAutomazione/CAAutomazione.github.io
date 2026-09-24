@@ -8,6 +8,8 @@ return [
  'db_dsn'=>'mysql:host=db;dbname=portal_demo;charset=utf8mb4',
  'db_user'=>'portal_demo', 'db_password'=>'demo-only-password',
  'base_url'=>'http://localhost:8000',
+ 'site_url'=>'https://caautomazione.github.io/',
+ 'privacy_url'=>'https://caautomazione.github.io/privacy/',
  'storage_path'=>'/private-documents',
  'max_upload_bytes'=>30*1024*1024,
  'capacity_bytes'=>10*1024*1024*1024,
