@@ -18,7 +18,7 @@ try {
   if((int)$count['n']>=8)fail('Troppi tentativi. Riprova tra 15 minuti.',429);
   C::exec('INSERT INTO login_attempts(email,ip) VALUES(?,?)',[$email,$ip]);
   $u=C::row('SELECT * FROM users WHERE email=? AND active=1 AND deleted_at IS NULL',[$email]);
-  if(!$u||!password_verify((string)($_POST['password']??''),$u['password_hash']))fail('Credenziali non valide.',401);
+  if(!$u||!password_verify((string)($_POST['password']??''),$u['password_hash']))fail('Credenziali non valide.',401);if($u['role']==='admin'&&strcasecmp($u['email'],(string)C::config()['admin_email'])!==0)fail('L’account amministratore non è configurato correttamente.',503);
   $version=C::config()['privacy_version'];$recorded=$u['privacy_version']===$version && $u['privacy_accepted_at']!==null;
   if(!$recorded && empty($_POST['privacy_read']))fail('Leggi l’informativa privacy e conferma la presa visione prima di accedere.');
   if(!$recorded && !empty($_POST['remember_privacy']))C::exec('UPDATE users SET privacy_version=?,privacy_accepted_at=UTC_TIMESTAMP() WHERE id=?',[$version,$u['id']]);
