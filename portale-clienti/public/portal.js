@@ -21,6 +21,13 @@
       input.focus({preventScroll:true});
     });
   });
+  document.querySelectorAll('.custom-title-toggle input').forEach(toggle => {
+    const panel = toggle.closest('form').querySelector('.custom-title-field');
+    const input = panel.querySelector('input');
+    const update = () => { panel.hidden = !toggle.checked; input.disabled = !toggle.checked; input.required = toggle.checked; };
+    toggle.addEventListener('change', update);
+    update();
+  });
   document.querySelectorAll('[data-upload-form]').forEach(form => form.addEventListener('submit', event => {
     const select = form.querySelector('.recipient-select');
     const parts = select.value.split(':');
