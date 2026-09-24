@@ -1,6 +1,7 @@
 # Protezioni per l'hosting Apache/Tophost. GitHub Pages ignora questo file.
+Options -Indexes
 <IfModule mod_authz_core.c>
-  <FilesMatch "^(\.|(?:contact|admin)-config.*\.php$)">
+  <FilesMatch "^(\.|(?:contact|admin)-config.*\.php$|lib\.php$|(?:PHPMailer|SMTP|Exception)\.php$)">
     Require all denied
   </FilesMatch>
 </IfModule>
