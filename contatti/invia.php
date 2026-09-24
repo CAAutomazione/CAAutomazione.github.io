@@ -4,6 +4,22 @@ declare(strict_types=1);
 use PHPMailer\PHPMailer\Exception as MailException;
 use PHPMailer\PHPMailer\PHPMailer;
 
+function fail(string $code, int $status): void
+{
+    http_response_code($status);
+    header('Location: /contatti/?errore=' . rawurlencode($code), true, 303);
+    exit;
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    header('Allow: POST');
+    fail('campi', 405);
+}
+header('Cache-Control: no-store');
+// Respinge le richieste troppo grandi prima della validazione e dell'invio SMTP.
+$contentLength = filter_var($_SERVER['CONTENT_LENGTH'] ?? '0', FILTER_VALIDATE_INT);
+if ($contentLength === false || $contentLength < 0 || $contentLength > 7 * 1024 * 1024) fail('file', 413);
+
 // La configurazione con la password SMTP si trova fuori da htdocs.
 $configPath = dirname(__DIR__, 2) . '/contact-config.php';
 if (!is_file($configPath)) {
@@ -11,13 +27,43 @@ if (!is_file($configPath)) {
     fail('configurazione', 503);
 }
 $config = require $configPath;
-if (!is_array($config) || empty($config['smtp_user']) || empty($config['smtp_password']) || empty($config['smtp_host'])) {
+if (!is_array($config) || !is_string($config['smtp_user'] ?? null) || $config['smtp_user'] === '' || !is_string($config['smtp_password'] ?? null) || $config['smtp_password'] === '' || !is_string($config['smtp_host'] ?? null) || $config['smtp_host'] === '') {
     fail('configurazione', 503);
 }
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    header('Allow: POST');
-    fail('campi', 405);
+// Conta anche gli invii malformati. Se il contatore non funziona, non spedisce email.
+function checkRateLimit(string $secret): void
+{
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) fail('invio', 503);
+    $dir = sys_get_temp_dir() . '/ca-contact-limit';
+    if (!is_dir($dir) && !@mkdir($dir, 0700) && !is_dir($dir)) fail('invio', 503);
+    $path = $dir . '/' . hash_hmac('sha256', $ip, $secret);
+    $handle = @fopen($path, 'c+');
+    if (!$handle) fail('invio', 503);
+    try {
+        if (!flock($handle, LOCK_EX)) fail('invio', 503);
+        $raw = stream_get_contents($handle, 4096);
+        if ($raw === false) fail('invio', 503);
+        $history = json_decode($raw, true);
+        if (!is_array($history)) $history = [];
+        $now = time();
+        $history = array_values(array_filter($history, static fn($timestamp) => is_int($timestamp) && $timestamp > $now - 86400));
+        $recent = array_filter($history, static fn($timestamp) => $timestamp > $now - 900);
+        $limited = count($recent) >= 4 || count($history) >= 20;
+        if (!$limited) {
+            $history[] = $now;
+            if (!ftruncate($handle, 0) || !rewind($handle)) fail('invio', 503);
+            $written = fwrite($handle, json_encode($history));
+            if ($written === false || !fflush($handle)) fail('invio', 503);
+        }
+        flock($handle, LOCK_UN);
+    } finally {
+        fclose($handle);
+    }
+    if ($limited) fail('limite', 429);
 }
+checkRateLimit($config['smtp_password']);
+
 if (!empty($_SERVER['HTTP_ORIGIN'])) {
     $originHost = parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST);
     $currentHost = strtolower(preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? ''));
@@ -40,12 +86,6 @@ function field(string $name, int $max, bool $required = false): string
     if (strlen($value) > $max * 4 || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $value)) fail('campi', 400);
     if ($required && $value === '') fail('campi', 400);
     return $value;
-}
-function fail(string $code, int $status): void
-{
-    http_response_code($status);
-    header('Location: /contatti/?errore=' . rawurlencode($code), true, 303);
-    exit;
 }
 $name = field('Nome e cognome', 120, true);
 $email = field('email', 254, true);
@@ -75,29 +115,6 @@ if ($type === 'richiesta') {
     $filename = 'curriculum.' . strtolower($matches[1]);
 }
 
-// Limita gli invii dallo stesso IP senza conservare l'indirizzo in chiaro.
-$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$key = hash('sha256', 'ca-form|' . $ip);
-$limitFile = sys_get_temp_dir() . '/ca-contact-' . $key;
-$handle = @fopen($limitFile, 'c+');
-if ($handle && flock($handle, LOCK_EX)) {
-    $history = json_decode(stream_get_contents($handle) ?: '[]', true);
-    if (!is_array($history)) $history = [];
-    $history = array_values(array_filter($history, static fn($time) => is_int($time) && $time > time() - 900));
-    if (count($history) >= 4) {
-        flock($handle, LOCK_UN);
-        fclose($handle);
-        fail('limite', 429);
-    }
-    $history[] = time();
-    ftruncate($handle, 0);
-    rewind($handle);
-    fwrite($handle, json_encode($history));
-    fflush($handle);
-    flock($handle, LOCK_UN);
-    fclose($handle);
-}
-
 require __DIR__ . '/../vendor/phpmailer/Exception.php';
 require __DIR__ . '/../vendor/phpmailer/PHPMailer.php';
 require __DIR__ . '/../vendor/phpmailer/SMTP.php';
@@ -107,6 +124,7 @@ try {
     $mail->Host = $config['smtp_host'];
     $mail->Port = (int) ($config['smtp_port'] ?? 587);
     $mail->SMTPAuth = true;
+    $mail->Timeout = 12;
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Username = $config['smtp_user'];
     $mail->Password = $config['smtp_password'];
