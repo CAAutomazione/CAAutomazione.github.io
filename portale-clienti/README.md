@@ -23,7 +23,7 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 - Upload di un file per un destinatario identificato con nome, cognome ed email e un impianto. File archiviati con nome casuale fuori dal web.
 - Lista personale dei documenti da scaricare e archivio dopo il primo avvio di download. Anteprima e download richiedono autorizzazione lato server; cliente senza azioni di modifica.
 - Log dei download e coda email per avviso di consegna, avviso all'amministratore e soglia residua di 2 GiB.
-- Lista amministrativa per data, eliminazione multipla con conferma, modifica del titolo e revoca dell’accesso.
+- Lista amministrativa per data, eliminazione multipla con conferma, modifica del titolo; la rimozione dei documenti avviene dall’archivio file.
 
 ## Limiti da risolvere prima del rilascio
 
@@ -47,7 +47,7 @@ Alla prima autenticazione viene richiesta la presa visione dell'informativa priv
 | Ruolo | Permessi |
 | --- | --- |
 | Amministratore (`caniatoa@libero.it`) | Gestisce clienti, aziende, impianti, operatori, file, accessi e impostazioni. È l’unico account amministratore. |
-| Operatore CA Automazione | Carica e invia file ai clienti esistenti; consulta, rinomina, revoca ed elimina documenti. Può cambiare la propria password. Non gestisce persone, aziende o impianti. |
+| Operatore CA Automazione | Carica e invia file ai clienti esistenti; consulta, rinomina ed elimina documenti. Può cambiare la propria password. Non gestisce persone, aziende o impianti. |
 | Cliente | Consulta e scarica solo i documenti assegnati personalmente, accede al proprio archivio e cambia la propria password. |
 
 L’amministratore crea gli operatori nella scheda «Clienti e impianti» e può disattivarli, reimpostarne la password o rimuoverli. Le verifiche dei permessi vengono eseguite anche dal server per le richieste inviate direttamente.
@@ -59,3 +59,9 @@ Per aggiornare **un database già esistente**, fare prima un backup e verificare
 La scheda **Impostazioni** dell’amministratore permette di impostare il numero massimo di download per documento e i giorni di accesso dalla data di caricamento. `0` lascia la regola illimitata. Quando un limite è raggiunto, il cliente vede ancora la voce nel proprio elenco ma non può aprire o scaricare il file; l’amministrazione conserva il file finché non lo elimina. I download concorrenti vengono contati sotto blocco del record per rispettare il limite. La gestione tecnica di SMTP, dimensione massima del caricamento, spazio e URL resta nel file `config.php` sul server.
 
 Il database di prova Codespaces è separato dalla produzione: usa un amministratore fittizio con password casuale conservata soltanto in `/private-documents/.demo-admin-login`, cinque aziende, dieci clienti e documenti inventati. Non importare la banca dati di prova sul server reale. Per aggiornare un database reale precedente è necessario applicare anche `sql/003-document-settings.sql` dopo `sql/002-operator-role.sql`, con backup preventivo.
+
+## Caricamento cartelle e archivio
+
+La scheda «Gestione Documenti» permette di caricare un singolo file o una cartella intera destinata a una sola persona e a un impianto. I titoli dei file conservano il percorso relativo delle sottocartelle; i contenuti restano nell’archivio privato e vengono notificati con una sola email per caricamento. Ogni invio accetta al massimo 100 file e ciascun file deve rispettare il limite di dimensione e i formati consentiti. Il server PHP deve essere configurato con `max_file_uploads` sufficiente (almeno 100 per l’intera cartella) e `post_max_size` adeguato; un invio troncato viene rifiutato.
+
+L’«Archivio file» amministrativo mostra data e ora di caricamento, ultimo avvio di download e numero di download per documento, ordinati per data di caricamento. Il numero registra gli avvii di trasmissione dal server, non la conferma del salvataggio sul dispositivo. I documenti si eliminano da questa sezione; non esiste un comando separato di revoca.
