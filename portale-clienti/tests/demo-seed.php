@@ -9,14 +9,24 @@ if (!$pdo->query("SHOW TABLES LIKE 'users'")->fetch()) {
   $line=trim($line);if ($line!=='')$pdo->exec($line);
  }
 }
-if ((int)C::row('SELECT COUNT(*) n FROM users')['n']>0) {echo "Dati dimostrativi già presenti.\n";exit;}
+$roleType=$pdo->query("SHOW COLUMNS FROM users LIKE 'role'")->fetch();
+if (!str_contains((string)$roleType['Type'], 'operator')) {
+ // Solo l'ambiente di prova: conserva account e documenti già creati.
+ C::exec("UPDATE users SET email='caniatoa@libero.it' WHERE role='admin' AND email='demo-admin@example.invalid'");
+ $pdo->exec(file_get_contents(dirname(__DIR__).'/sql/002-operator-role.sql'));
+}
+if ((int)C::row('SELECT COUNT(*) n FROM users')['n']>0) {
+ if (!C::row("SELECT id FROM users WHERE email='operatore@example.invalid'")) C::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,'operator')",['Operatore','CA Automazione','operatore@example.invalid',password_hash('DemoAccess2026!',PASSWORD_DEFAULT)]);
+ echo "Dati dimostrativi già presenti.\n";exit;
+}
 C::exec('INSERT INTO companies(name) VALUES(?)',['Azienda dimostrativa']);$company=(int)$pdo->lastInsertId();
 C::exec('INSERT INTO companies(name) VALUES(?)',['Seconda azienda dimostrativa']);$otherCompany=(int)$pdo->lastInsertId();
 C::exec('INSERT INTO plants(company_id,name) VALUES(?,?)',[$company,'Impianto Nord']);$plant=(int)$pdo->lastInsertId();
 C::exec('INSERT INTO plants(company_id,name) VALUES(?,?)',[$company,'Impianto Sud']);
 C::exec('INSERT INTO plants(company_id,name) VALUES(?,?)',[$otherCompany,'Impianto Produzione']);$otherPlant=(int)$pdo->lastInsertId();
 $hash=password_hash('DemoAccess2026!',PASSWORD_DEFAULT);
-C::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,'admin')",['CA','Automazione','demo-admin@example.invalid',$hash]);$admin=(int)$pdo->lastInsertId();
+C::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,'admin')",['CA','Automazione','caniatoa@libero.it',$hash]);$admin=(int)$pdo->lastInsertId();
+C::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,'operator')",['Operatore','CA Automazione','operatore@example.invalid',$hash]);
 C::exec("INSERT INTO users(company_id,first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,?,'client')",[$company,'Mario','Rossi','mario@example.invalid',$hash]);$mario=(int)$pdo->lastInsertId();
 C::exec('INSERT INTO user_plants(user_id,plant_id) VALUES(?,?)',[$mario,$plant]);
 C::exec("INSERT INTO users(company_id,first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,?,'client')",[$otherCompany,'Laura','Bianchi','laura@example.invalid',$hash]);$laura=(int)$pdo->lastInsertId();
