@@ -1,4 +1,11 @@
 (() => {
+  const resetToggle = document.querySelector('.reset-toggle');
+  resetToggle?.addEventListener('click', () => {
+    const panel = document.getElementById('reset-panel');
+    panel.hidden = !panel.hidden;
+    resetToggle.setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden) panel.querySelector('input[type=email]')?.focus();
+  });
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('it').trim();
   const params = new URLSearchParams(location.search);
   const key = 'portal-view:' + (params.get('tab') || 'documents');
