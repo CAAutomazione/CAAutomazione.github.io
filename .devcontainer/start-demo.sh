@@ -21,6 +21,7 @@ return [
  'smtp_host'=>'not-configured.invalid', 'smtp_port'=>587,
  'smtp_user'=>'', 'smtp_password'=>'',
  'cron_secret'=>'demo-only',
+ 'setup_secret'=>'demo-only',
  'allow_http_preview'=>true,
 ];
 PHP
