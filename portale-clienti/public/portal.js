@@ -41,6 +41,17 @@
     }
     if (!confirm('Confermi la consegna a ' + select.selectedOptions[0].text + '?'))event.preventDefault();
   }));
+  document.querySelector('.archive-folder-button')?.addEventListener('click', () => {
+    const card = document.querySelector('.archive-card');
+    const folder = card.querySelector('.archive-folder-select').value;
+    if (!folder) { card.querySelector('.archive-folder-select').focus(); return; }
+    card.querySelectorAll('tr[data-folder]').forEach(row => {
+      if (row.dataset.folder === folder) {
+        const checkbox = row.querySelector('input[name="ids[]"]');
+        if (checkbox) checkbox.checked = true;
+      }
+    });
+  });
   const resetToggle = document.querySelector('.reset-toggle');
   resetToggle?.addEventListener('click', () => {
     const panel = document.getElementById('reset-panel');
