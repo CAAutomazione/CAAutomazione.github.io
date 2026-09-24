@@ -24,6 +24,10 @@ return [
 ];
 PHP
 fi
+# Compatibilità con i Codespaces creati prima dell'aggiunta del ruolo operatore.
+if grep -q "'admin_email'=>'demo-admin@example.invalid'" config.php; then
+  sed -i "s/'admin_email'=>'demo-admin@example.invalid'/'admin_email'=>'caniatoa@libero.it'/" config.php
+fi
 composer install --no-dev --no-interaction --prefer-dist
 ready=0
 for attempt in $(seq 1 45); do
