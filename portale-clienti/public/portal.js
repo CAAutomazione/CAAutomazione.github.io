@@ -1,4 +1,26 @@
 (() => {
+  document.querySelectorAll('input[type="password"]').forEach(input => {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'password-control';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'password-visibility';
+    button.setAttribute('aria-label', 'Mostra password');
+    button.setAttribute('aria-pressed', 'false');
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="m3 21 18-18"/></svg>';
+    wrapper.appendChild(button);
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      button.classList.toggle('is-visible', visible);
+      button.setAttribute('aria-label', visible ? 'Nascondi password' : 'Mostra password');
+      button.setAttribute('aria-pressed', String(visible));
+      input.focus({preventScroll:true});
+    });
+  });
   const resetToggle = document.querySelector('.reset-toggle');
   resetToggle?.addEventListener('click', () => {
     const panel = document.getElementById('reset-panel');
