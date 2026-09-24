@@ -4,13 +4,13 @@ Questa prova usa un database e documenti **fittizi**. Non caricare dati di clien
 
 1. Apri [Avvia demo in GitHub Codespaces](https://codespaces.new/CAAutomazione/CAAutomazione.github.io/tree/area-clienti-portale?quickstart=1) e crea un codespace sul ramo `area-clienti-portale` (o riprendi quello già creato).
 2. Attendi che l'ambiente abbia finito di avviarsi. Nella scheda **Porte / Ports** apri il collegamento associato alla porta **8000**, chiamato «Area Clienti · demo». Mantieni la visibilità della porta **Private**.
-3. Alla prima entrata spunta «Ho letto l’informativa privacy» e «Ricorda la presa visione». L’amministratore di prova usa dati fittizi ed esiste solo nel database Codespaces. Per leggere le sue credenziali generate casualmente, apri il terminale **nel Codespace della demo** ed esegui `cat /private-documents/.demo-admin-login`. Il file è privato e non è nel repository. La password viene generata una volta e resta la stessa nei riavvii della demo. Gli altri profili di prova usano `DemoAccess2026!`:
+3. Alla prima entrata spunta «Ho letto l’informativa privacy» e «Ricorda la presa visione». L’amministratore di prova usa dati fittizi ed esiste solo nel database Codespaces. Per leggere le sue credenziali generate casualmente, apri il terminale **nel Codespace della demo** ed esegui `cat /private-documents/.demo-admin-login`. Il file è privato e non è nel repository. La password viene generata una volta e resta la stessa nei riavvii della demo. Nello stesso file privato trovi anche le credenziali **Operatore** e **Cliente** per confrontare le tre viste:
 
    | Profilo | Email | Cosa verificare |
    | --- | --- | --- |
    | Amministratore di presentazione | vedi file privato nel Codespace | Gestione completa dei dati fittizi |
-   | Operatore CA Automazione | `operatore@example.invalid` | Gestione file, senza accesso agli account |
-   | Clienti fittizi | `mario@example.invalid`, `laura@example.invalid` e altri otto | Documenti personali e archivio |
+   | Operatore CA Automazione | vedi file privato | Gestione file, senza accesso agli account |
+   | Clienti fittizi | il cliente di prova è nel file privato; altri nove clienti fittizi | Documenti personali e archivio |
 
    Il database fittizio contiene cinque aziende, almeno dieci clienti e documenti di esempio, alcuni già scaricati. **Non copiare il database della demo su Tophost.** L’account reale `caniatoa@libero.it` va creato nel database di produzione con una password privata di almeno 12 caratteri.
 
