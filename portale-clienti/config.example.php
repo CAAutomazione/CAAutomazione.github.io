@@ -3,6 +3,8 @@ return [
  'db_dsn' => 'mysql:host=localhost;dbname=area_clienti;charset=utf8mb4',
  'db_user' => 'CHANGE_ME', 'db_password' => 'CHANGE_ME',
  'base_url' => 'https://clienti.caniatoautomazione.com',
+ 'site_url' => 'https://caautomazione.github.io/', // replace with the public website domain when moving to Tophost
+ 'privacy_url' => 'https://caautomazione.github.io/privacy/', // replace with the actual published privacy policy URL
  'storage_path' => dirname(__DIR__) . '/private-documents', // outside public/ and not web-accessible
  'max_upload_bytes' => 30 * 1024 * 1024,
  'capacity_bytes' => null, // confirmed usable quota for this app; null disables quota alerts
