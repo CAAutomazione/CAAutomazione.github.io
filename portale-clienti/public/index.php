@@ -72,7 +72,7 @@ try {
   $recipient=(int)($_POST['recipient_id']??0);$plant=(int)($_POST['plant_id']??0);
   $r=C::row("SELECT u.id,u.company_id,u.email,u.first_name,u.last_name FROM users u JOIN user_plants up ON up.user_id=u.id JOIN plants p ON p.id=up.plant_id AND p.company_id=u.company_id AND p.active=1 JOIN companies c ON c.id=u.company_id AND c.active=1 WHERE u.id=? AND p.id=? AND u.active=1 AND u.deleted_at IS NULL AND u.role='client'",[$recipient,$plant]);
   if(!$r)fail('Seleziona un destinatario e un impianto validi.');
-  $folder=($_POST['upload_mode']??'')==='folder';$title=field('title',220);$incoming=$_FILES[$folder?'files':'file']??null;
+  $folder=($_POST['upload_mode']??'')==='folder';$customTitle=!$folder&&($_POST['custom_title']??'')==='1';$title=$customTitle?field('title',220):'';if($customTitle&&$title==='')fail('Inserisci un titolo personalizzato oppure disattiva questa opzione.');$incoming=$_FILES[$folder?'files':'file']??null;
   if(!$incoming)fail('Seleziona un file o una cartella.');
   $files=[];if($folder){foreach((array)$incoming['name'] as $i=>$name)$files[]=['name'=>$name,'path'=>$incoming['full_path'][$i]??$name,'tmp'=>$incoming['tmp_name'][$i]??'','error'=>$incoming['error'][$i]??UPLOAD_ERR_NO_FILE,'size'=>$incoming['size'][$i]??0];}
   else $files[]=['name'=>$incoming['name'],'path'=>$incoming['name'],'tmp'=>$incoming['tmp_name'],'error'=>$incoming['error'],'size'=>$incoming['size']];
@@ -85,7 +85,7 @@ try {
    $mime=(new finfo(FILEINFO_MIME_TYPE))->file($f['tmp']);if(!in_array($mime,$allowed,true))fail('La cartella contiene un tipo di file non consentito. Nessun file è stato consegnato.');
    $segments=explode('/',str_replace('\\','/',(string)$f['path']));if(in_array('..',$segments,true)||in_array('.',$segments,true))fail('Nome della cartella non valido.');
    $segments=array_values(array_filter(array_map('cleanFilename',$segments),fn($part)=>$part!==''));
-   $name=cleanFilename((string)$f['name']);$label=$folder?mb_substr(implode(' / ',$segments)?:$name,0,220):$title;
+   $name=cleanFilename((string)$f['name']);$label=$folder?mb_substr(implode(' / ',$segments)?:$name,0,220):($customTitle?$title:mb_substr($name,0,220));
    if($label==='')fail('Inserisci il titolo del documento.');
    $staged[]=['source'=>$f['tmp'],'name'=>$name,'title'=>$label,'mime'=>$mime,'bytes'=>(int)$f['size']];$size+=(int)$f['size'];
   }
@@ -113,7 +113,7 @@ try {
   $people=C::all("SELECT u.id,u.first_name,u.last_name,u.email,p.id plant_id,p.name plant,c.name company FROM users u JOIN companies c ON c.id=u.company_id JOIN user_plants up ON up.user_id=u.id JOIN plants p ON p.id=up.plant_id WHERE u.role='client' AND u.active=1 AND u.deleted_at IS NULL AND c.active=1 AND p.active=1 ORDER BY c.name,u.last_name");
   $opts='<option value="">Seleziona una persona</option>';foreach($people as $p)$opts.='<option value="'.$p['id'].':'.$p['plant_id'].'">'.C::h($p['first_name'].' '.$p['last_name'].' · '.$p['company'].' / '.$p['plant'].' · '.$p['email']).'</option>';
   $recipient='<label>Destinatario<select class="recipient-select" required>'.$opts.'</select></label><input type="hidden" name="recipient_id" class="recipient-id"><input type="hidden" name="plant_id" class="plant-id">';
-  $body.='<div class="cols upload-options"><section class="card"><h2>Carica un documento</h2><p>Scegli la persona a cui consegnare il file.</p><form method="post" action="/?action=upload" enctype="multipart/form-data" data-upload-form>'.inputCsrf().$recipient.'<label>Titolo del documento<input name="title" maxlength="220" required></label><label>File<input type="file" name="file" required></label><button class="primary">Carica e avvisa il cliente</button></form></section>';
+  $body.='<div class="cols upload-options"><section class="card"><h2>Carica un documento</h2><p>Scegli la persona a cui consegnare il file.</p><form method="post" action="/?action=upload" enctype="multipart/form-data" data-upload-form>'.inputCsrf().$recipient.'<label>File<input type="file" name="file" required></label><label class="custom-title-toggle"><input type="checkbox" name="custom_title" value="1"> Usa un titolo diverso dal nome del file</label><div class="custom-title-field" hidden><label>Titolo personalizzato<input name="title" maxlength="220" disabled></label></div><button class="primary">Carica e avvisa il cliente</button></form></section>';
   $body.='<section class="card"><h2>Carica una cartella</h2><p>Tutti i file andranno alla stessa persona. Il percorso delle sottocartelle apparirà nel titolo. Massimo 100 file per invio.</p><form method="post" action="/?action=upload" enctype="multipart/form-data" data-upload-form>'.inputCsrf().'<input type="hidden" name="upload_mode" value="folder">'.$recipient.'<input type="hidden" name="expected_files" class="expected-files"><label>Cartella<input type="file" name="files[]" webkitdirectory directory multiple required></label><button class="primary">Carica la cartella e avvisa il cliente</button></form></section></div>';
   $docs=C::all('SELECT d.*,u.first_name,u.last_name,u.email,c.name company,p.name plant FROM documents d JOIN users u ON u.id=d.recipient_id JOIN companies c ON c.id=d.company_id JOIN plants p ON p.id=d.plant_id WHERE d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 200');
  }
