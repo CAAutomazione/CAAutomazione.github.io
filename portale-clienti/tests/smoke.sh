@@ -33,6 +33,7 @@ php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FR
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE documents SET revoked_at=UTC_TIMESTAMP() WHERE id=1");'
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Revoked document still available: $status"; exit 1; }
+php -r 'require "src/Core.php"; try { Portal\Core::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,?)", ["Eve","Other","other@example.invalid","hash","admin"]); exit(1); } catch (PDOException $e) { exit(0); }'
 login operator@example.invalid operator.cookie
 curl -s -b operator.cookie http://localhost:8000/?tab=accounts > operator.html
 if grep -q 'Nuovo account cliente' operator.html; then echo 'Operator can see customer management'; exit 1; fi
