@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+
 const ADMIN_EMAIL = 'caniatoa@libero.it';
 
 function admin_config(): array
@@ -128,8 +130,9 @@ function admin_log(string $outcome, string $account = ADMIN_EMAIL): void
 
 function admin_throttled(string $event, int $maximum, int $minutes): bool
 {
-    $stmt = admin_db()->prepare('SELECT COUNT(*) FROM admin_access_log WHERE event = ? AND ip = ? AND created_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? MINUTE)');
-    $stmt->execute([$event, admin_ip(), $minutes]);
+    $minutes = max(1, min($minutes, 1440));
+    $stmt = admin_db()->prepare('SELECT COUNT(*) FROM admin_access_log WHERE event = ? AND ip = ? AND created_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL ' . $minutes . ' MINUTE)');
+    $stmt->execute([$event, admin_ip()]);
     return (int) $stmt->fetchColumn() >= $maximum;
 }
 
