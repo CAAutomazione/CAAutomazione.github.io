@@ -11,3 +11,5 @@
 
 .operator-list{max-height:520px;overflow-y:auto;margin-top:12px;padding-right:6px}.operator-list .account-tools{margin:18px 0}
 .login-aside img{border-radius:14px}
+
+.password-control{display:block;position:relative;margin-top:6px}.password-control input:not([type=hidden]){margin-top:0;padding-right:52px}.password-visibility{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:8px;background:transparent;color:#4c6689;display:grid;place-items:center}.password-visibility:hover{background:#e9f1fb;color:#1550a3}.password-visibility svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.password-visibility .eye-slash{display:none}.password-visibility.is-visible .eye-slash{display:block}.password-visibility:focus-visible{outline:3px solid #e4a91d;outline-offset:2px}
