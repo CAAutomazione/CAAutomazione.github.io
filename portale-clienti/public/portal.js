@@ -21,6 +21,19 @@
       input.focus({preventScroll:true});
     });
   });
+  document.querySelectorAll('[data-upload-form]').forEach(form => form.addEventListener('submit', event => {
+    const select = form.querySelector('.recipient-select');
+    const parts = select.value.split(':');
+    if (parts.length !== 2) { event.preventDefault(); select.focus(); return; }
+    form.querySelector('.recipient-id').value = parts[0];
+    form.querySelector('.plant-id').value = parts[1];
+    const folder = form.querySelector('[name="files[]"]');
+    if (folder) {
+      if (!folder.files.length || folder.files.length > 100) { event.preventDefault(); alert('Seleziona una cartella con un massimo di 100 file.'); return; }
+      form.querySelector('.expected-files').value = folder.files.length;
+    }
+    if (!confirm('Confermi la consegna a ' + select.selectedOptions[0].text + '?'))event.preventDefault();
+  }));
   const resetToggle = document.querySelector('.reset-toggle');
   resetToggle?.addEventListener('click', () => {
     const panel = document.getElementById('reset-panel');
