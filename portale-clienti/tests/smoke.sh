@@ -67,6 +67,9 @@ rm -f "$folder_file_a" "$folder_file_b"
 [ "$status" = 303 ] || { echo "Folder upload failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $docs=Portal\Core::row("SELECT COUNT(*) n FROM documents WHERE recipient_id=?",[(int)$argv[1]]);$mail=Portal\Core::row("SELECT COUNT(*) n FROM notification_queue WHERE kind=?",["new_document"]);if($docs["n"]<3||$mail["n"]!=1)exit(1);' "$folder_client"
 login caniatoa@libero.it admin.cookie
+curl -s -b admin.cookie 'http://localhost:8000/?tab=archive' > admin-archive.html
+if grep -q 'Documenti consegnati' admin-archive.html; then echo 'Duplicate delivered-documents table in archive'; exit 1; fi
+
 alice_id=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
 curl -s -b admin.cookie http://localhost:8000/ > admin.html
 token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' admin.html | head -1)
