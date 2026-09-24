@@ -10,7 +10,7 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 
 1. Creare un database vuoto e importare `sql/schema.sql`.
 2. Eseguire `composer install --no-dev` nella cartella dell'applicazione.
-3. Copiare `config.example.php` in `config.php`, compilare credenziali e indirizzi. Non pubblicare il file di configurazione.
+3. Copiare `config.example.php` in `config.php`, compilare credenziali e indirizzi. Impostare `site_url` sull’indirizzo pubblico del sito e `privacy_url` sull’informativa pubblicata sul dominio definitivo: il pulsante «Torna al sito internet» e il collegamento alla privacy useranno questi valori anche su Tophost. Non pubblicare il file di configurazione.
 4. Configurare la document root del portale su **`public/`**, mai sulla cartella del progetto. Creare la cartella indicata da `storage_path` **fuori dalla directory web**, scrivibile dall'utente PHP. Se non si può impostare questa separazione, non pubblicare il portale.
 5. Attivare HTTPS. Creare il primo amministratore da CLI: `php bin.php admin Nome Cognome email@dominio.it`; inserire la password solo al prompt.
 6. Configurare un cron che esegua `php /percorso/portale-clienti/bin.php jobs` ogni 5 minuti. Se Tophost non offre CLI/cron, occorre un metodo alternativo protetto da verificare prima dell'uso; non rendere pubblico `bin.php`.
