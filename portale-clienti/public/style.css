@@ -10,3 +10,4 @@
 @media(min-width:851px){.login-layout .login-aside{grid-column:1;grid-row:1}.login-layout .login{grid-column:2;grid-row:1}}
 
 .operator-list{max-height:520px;overflow-y:auto;margin-top:12px;padding-right:6px}.operator-list .account-tools{margin:18px 0}
+.login-aside img{border-radius:14px}
