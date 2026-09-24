@@ -18,7 +18,7 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 
 ## Funzioni della prima versione
 
-- Login con password hash, sessione e CSRF; amministratore e cliente distinti.
+- Tre ruoli con password hash, sessione e CSRF: amministratore, operatore CA Automazione e cliente. Solo `caniatoa@libero.it` può avere ruolo amministratore; il database impedisce un secondo amministratore.
 - Creazione aziende, impianti e account personali; modifica nome/email, aggiunta e rimozione impianti autorizzati, disattivazione e reimpostazione password. Recupero autonomo password tramite link monouso valido 30 minuti; cambio password dall’account e invalidazione delle sessioni precedenti.
 - Upload di un file per un destinatario identificato con nome, cognome ed email e un impianto. File archiviati con nome casuale fuori dal web.
 - Lista personale dei documenti da scaricare e archivio dopo il primo avvio di download. Anteprima e download richiedono autorizzazione lato server; cliente senza azioni di modifica.
@@ -41,3 +41,15 @@ La schermata amministrativa mostra nome, email, azienda, impianti, stato e ultim
 Le password sono memorizzate solo come hash e non possono essere lette. L'amministratore può reimpostarle e usare **Entra come cliente** per consultare la stessa vista, con evento di audit. In tale modalità il download è disattivato, così l'amministratore non genera falsi eventi attribuiti al cliente. L'account cliente può essere rimosso: l'accesso e le sessioni cessano, mentre i record storici restano per la politica di conservazione ancora da definire.
 
 Alla prima autenticazione viene richiesta la presa visione dell'informativa privacy. Se l'utente spunta **Ricorda la presa visione**, l'accettazione e la versione dell'informativa vengono registrate nel database e la richiesta non si ripete finché la versione resta la stessa. La versione va aggiornata in `config.php` quando cambia l'informativa. È una conferma di lettura, non un consenso generico al trattamento.
+
+## Tre livelli di accesso
+
+| Ruolo | Permessi |
+| --- | --- |
+| Amministratore (`caniatoa@libero.it`) | Gestisce clienti, aziende, impianti, operatori, file, accessi e impostazioni. È l’unico account amministratore. |
+| Operatore CA Automazione | Carica e invia file ai clienti esistenti; consulta, rinomina, revoca ed elimina documenti. Può cambiare la propria password. Non gestisce persone, aziende o impianti. |
+| Cliente | Consulta e scarica solo i documenti assegnati personalmente, accede al proprio archivio e cambia la propria password. |
+
+L’amministratore crea gli operatori nella scheda «Clienti e impianti» e può disattivarli, reimpostarne la password o rimuoverli. Le verifiche dei permessi vengono eseguite anche dal server per le richieste inviate direttamente.
+
+Per aggiornare **un database già esistente**, fare prima un backup e verificare gli amministratori presenti: eseguire `sql/002-operator-role.sql` una sola volta. Se l’account amministrativo esistente non ha email `caniatoa@libero.it`, aggiornare prima l’indirizzo dopo averne verificato la titolarità. L’ALTER rifiuta più di un amministratore e indirizzi amministrativi diversi. Non applicare la migrazione a un database creato con lo schema aggiornato. La demo Codespaces gestisce da sé la propria migrazione dei dati fittizi.
