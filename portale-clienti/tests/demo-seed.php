@@ -58,4 +58,14 @@ foreach($names as $i=>[$first,$last]) {
   if ($downloaded)C::exec('INSERT INTO download_events(document_id,user_id,started_at) VALUES(?,?,?)',[$pdo->lastInsertId(),$clientId,$date]);
  }
 }
+// Le password di prova degli altri due ruoli restano nel file privato del Codespace.
+$credentialText=file_get_contents($credentialPath);
+foreach ([['Operatore','operatore@example.invalid'],['Cliente','mario@example.invalid']] as [$label,$email]) {
+ if(str_contains($credentialText,$label.' email:'))continue;
+ $profile=C::row('SELECT id FROM users WHERE email=?',[$email]);if(!$profile)throw new RuntimeException('Profilo di prova mancante: '.$label);
+ $password=bin2hex(random_bytes(16));
+ C::exec('UPDATE users SET password_hash=?,active=1,deleted_at=NULL,session_version=session_version+1 WHERE id=?',[password_hash($password,PASSWORD_DEFAULT),$profile['id']]);
+ file_put_contents($credentialPath,"$label email: $email\n$label password: $password\n",FILE_APPEND|LOCK_EX);
+}
+chmod($credentialPath,0600);
 echo "Dati di presentazione disponibili. Credenziali private: $credentialPath\n";
