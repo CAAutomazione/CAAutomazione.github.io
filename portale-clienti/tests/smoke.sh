@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 cat > config.php <<'PHP'
 <?php
-return ['db_dsn'=>'mysql:host=127.0.0.1;dbname=portal_test;charset=utf8mb4','db_user'=>'root','db_password'=>'testpass','base_url'=>'http://localhost:8000','storage_path'=>sys_get_temp_dir().'/portal-test-docs','max_upload_bytes'=>31457280,'capacity_bytes'=>null,'alert_remaining_bytes'=>2147483648,'admin_email'=>'admin@example.invalid','mail_from'=>'admin@example.invalid','smtp_host'=>'localhost','smtp_port'=>587,'smtp_user'=>'','smtp_password'=>'','privacy_version'=>'2026-09-23','cron_secret'=>'test-only'];
+return ['db_dsn'=>'mysql:host=127.0.0.1;dbname=portal_test;charset=utf8mb4','db_user'=>'root','db_password'=>'testpass','base_url'=>'http://localhost:8000','storage_path'=>sys_get_temp_dir().'/portal-test-docs','max_upload_bytes'=>31457280,'capacity_bytes'=>null,'alert_remaining_bytes'=>2147483648,'admin_email'=>'caniatoa@libero.it','mail_from'=>'admin@example.invalid','smtp_host'=>'localhost','smtp_port'=>587,'smtp_user'=>'','smtp_password'=>'','privacy_version'=>'2026-09-23','cron_secret'=>'test-only'];
 PHP
 id=$(php tests/seed.php)
 php -S localhost:8000 -t public > server-test.log 2>&1 & server=$!
@@ -33,7 +33,17 @@ php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FR
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE documents SET revoked_at=UTC_TIMESTAMP() WHERE id=1");'
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Revoked document still available: $status"; exit 1; }
-login admin@example.invalid admin.cookie
+login operator@example.invalid operator.cookie
+curl -s -b operator.cookie http://localhost:8000/?tab=accounts > operator.html
+if grep -q 'Nuovo account cliente' operator.html; then echo 'Operator can see customer management'; exit 1; fi
+operator_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' operator.html | head -1)
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$operator_token&name=Forbidden" 'http://localhost:8000/?action=company')
+[ "$status" = 403 ] || { echo "Operator created a company: $status"; exit 1; }
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' 'http://localhost:8000/?tab=accounts')
+[ "$status" = 200 ] || exit 1
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' 'http://localhost:8000/?tab=archive')
+[ "$status" = 200 ] || exit 1
+login caniatoa@libero.it admin.cookie
 alice_id=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
 curl -s -b admin.cookie http://localhost:8000/ > admin.html
 token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' admin.html | head -1)
