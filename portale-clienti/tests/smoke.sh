@@ -51,6 +51,21 @@ status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' 'http://local
 [ "$status" = 200 ] || exit 1
 status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' 'http://localhost:8000/?tab=archive')
 [ "$status" = 200 ] || exit 1
+folder_file_a=$(mktemp)
+folder_file_b=$(mktemp)
+printf 'first folder test' > "$folder_file_a"
+printf 'second folder test' > "$folder_file_b"
+folder_client=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
+folder_plant=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT plant_id FROM user_plants WHERE user_id=?",[(int)$argv[1]])["plant_id"];' "$folder_client")
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' \
+  -F "_csrf=$operator_token" -F "recipient_id=$folder_client" -F "plant_id=$folder_plant" \
+  -F 'upload_mode=folder' -F 'expected_files=2' \
+  -F "files[]=@$folder_file_a;filename=Prova/primo.txt;type=text/plain" \
+  -F "files[]=@$folder_file_b;filename=Prova/secondo.txt;type=text/plain" \
+  'http://localhost:8000/?action=upload')
+rm -f "$folder_file_a" "$folder_file_b"
+[ "$status" = 303 ] || { echo "Folder upload failed: $status"; exit 1; }
+php -r 'require "src/Core.php"; $docs=Portal\Core::row("SELECT COUNT(*) n FROM documents WHERE recipient_id=?",[(int)$argv[1]]);$mail=Portal\Core::row("SELECT COUNT(*) n FROM notification_queue WHERE kind=?",["new_document"]);if($docs["n"]<3||$mail["n"]!=1)exit(1);' "$folder_client"
 login caniatoa@libero.it admin.cookie
 alice_id=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
 curl -s -b admin.cookie http://localhost:8000/ > admin.html
