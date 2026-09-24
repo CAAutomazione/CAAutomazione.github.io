@@ -64,6 +64,17 @@ function checkRateLimit(string $secret): void
 }
 checkRateLimit($config['smtp_password']);
 
+// Il blocco dei moduli è configurato nel pannello, quando è stato attivato.
+if (is_file(dirname(__DIR__, 2) . '/admin-config.php')) {
+    try {
+        require_once __DIR__ . '/../pannello-di-controllo/lib.php';
+        if (admin_setting('forms_paused', '0') === '1') fail('sospeso', 503);
+    } catch (Throwable $exception) {
+        error_log('Modulo contatti: verifica stato del pannello non disponibile.');
+        fail('invio', 503);
+    }
+}
+
 if (!empty($_SERVER['HTTP_ORIGIN'])) {
     $originHost = parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST);
     $currentHost = strtolower(preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? ''));
@@ -139,6 +150,14 @@ try {
 } catch (MailException $exception) {
     error_log('Modulo contatti: errore invio SMTP (' . get_class($exception) . ').');
     fail('invio', 502);
+}
+if (function_exists('admin_db')) {
+    try {
+        $column = $type === 'candidatura' ? 'cvs' : 'messages';
+        admin_db()->exec('INSERT INTO admin_daily (day, ' . $column . ') VALUES (UTC_DATE(), 1) ON DUPLICATE KEY UPDATE ' . $column . ' = ' . $column . ' + 1');
+    } catch (Throwable $exception) {
+        error_log('Modulo contatti: invio riuscito, conteggio non disponibile.');
+    }
 }
 header('Location: /contatti/grazie/?tipo=' . rawurlencode($type), true, 303);
 exit;

@@ -25,6 +25,7 @@ const messages = {
   file: 'Il curriculum non è valido o supera il limite consentito.',
   invio: 'Non è stato possibile inviare il messaggio. Riprova o scrivi direttamente via email.',
   limite: 'Troppi tentativi di invio. Riprova più tardi.',
+  sospeso: 'Gli invii tramite il sito sono temporaneamente sospesi. Contattaci direttamente via email.',
   configurazione: 'L’invio dal sito non è ancora configurato. Scrivi direttamente via email.'
 };
 const code = new URLSearchParams(location.search).get('errore');

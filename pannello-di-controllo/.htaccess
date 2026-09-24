@@ -1,0 +1,11 @@
+DirectoryIndex index.php
+<IfModule mod_authz_core.c>
+  <Files "lib.php">
+    Require all denied
+  </Files>
+</IfModule>
+<IfModule mod_headers.c>
+  Header always set Cache-Control "no-store, private"
+  Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+  Header always set Referrer-Policy "no-referrer"
+</IfModule>
