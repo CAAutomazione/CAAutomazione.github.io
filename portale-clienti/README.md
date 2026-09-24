@@ -58,7 +58,7 @@ Per aggiornare **un database già esistente**, fare prima un backup e verificare
 
 La scheda **Impostazioni** dell’amministratore permette di impostare il numero massimo di download per documento e i giorni di accesso dalla data di caricamento. `0` lascia la regola illimitata. Quando un limite è raggiunto, il cliente vede ancora la voce nel proprio elenco ma non può aprire o scaricare il file; l’amministrazione conserva il file finché non lo elimina. I download concorrenti vengono contati sotto blocco del record per rispettare il limite. La gestione tecnica di SMTP, dimensione massima del caricamento, spazio e URL resta nel file `config.php` sul server.
 
-Il database di prova Codespaces è separato dalla produzione: usa un amministratore fittizio con password casuale conservata soltanto in `/private-documents/.demo-admin-login`, cinque aziende, dieci clienti e documenti inventati. Non importare la banca dati di prova sul server reale. Per aggiornare un database reale precedente è necessario applicare anche `sql/003-document-settings.sql` dopo `sql/002-operator-role.sql`, con backup preventivo.
+Il database di prova Codespaces è separato dalla produzione: usa un amministratore fittizio con password casuale conservata nel container Codespaces in `/private-documents/.demo-admin-login` (nel terminale del Codespace: `cat /private-documents/.demo-admin-login`), cinque aziende, dieci clienti e documenti inventati. Non importare la banca dati di prova sul server reale. Per aggiornare un database reale precedente è necessario applicare anche `sql/003-document-settings.sql` dopo `sql/002-operator-role.sql`, con backup preventivo.
 
 ## Caricamento cartelle e archivio
 
