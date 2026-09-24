@@ -8,7 +8,8 @@ Questa prova usa un database e documenti **fittizi**. Non caricare dati di clien
 
    | Profilo | Email | Cosa verificare |
    | --- | --- | --- |
-   | CA Automazione | `demo-admin@example.invalid` | Aziende, impianti, schede cliente, caricamento file fittizi, registro accessi, revoca e rimozione account |
+   | CA Automazione | `caniatoa@libero.it` | Aziende, impianti, schede cliente, caricamento file fittizi, registro accessi, revoca e rimozione account |
+   | Operatore CA Automazione | `operatore@example.invalid` | Caricamento e gestione documenti, senza gestione clienti |
    | Mario Rossi | `mario@example.invalid` | Documento nuovo, download e passaggio automatico in Archivio |
    | Laura Bianchi | `laura@example.invalid` | Nessun accesso ai file dell'azienda di Mario |
 
