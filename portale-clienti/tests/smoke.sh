@@ -21,7 +21,9 @@ status=$(curl -s -b carla.cookie -o denied.txt -w '%{http_code}' "http://localho
 curl -s -c first.cookie -b first.cookie http://localhost:8000/ > first-login.html
 first_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' first-login.html | head -1)
 status=$(curl -s -c first.cookie -b first.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$first_token" --data-urlencode 'email=alice@example.invalid' --data-urlencode 'password=test-password-1234' 'http://localhost:8000/?action=login')
-[ "$status" = 400 ] || { echo "Privacy acknowledgement not required on first login: $status"; exit 1; }
+[ "$status" = 303 ] || { echo "Privacy acknowledgement not required on first login: $status"; exit 1; }
+curl -s -b first.cookie http://localhost:8000/ > failed-login.html
+grep -q 'login-error.*informativa privacy' failed-login.html || { echo 'Login error missing from sign-in form'; exit 1; }
 login alice@example.invalid alice.cookie
 curl -s -c remembered.cookie -b remembered.cookie http://localhost:8000/ > remembered-login.html
 remembered_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' remembered-login.html | head -1)
@@ -30,7 +32,10 @@ status=$(curl -s -c remembered.cookie -b remembered.cookie -o /dev/null -w '%{ht
 status=$(curl -s -b alice.cookie -o delivered.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 200 ] && [ "$(cat delivered.txt)" = 'private test document' ] || { echo "Authorized download failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FROM documents WHERE id=1"); $e=Portal\Core::row("SELECT COUNT(*) n FROM download_events WHERE document_id=1"); if (!$d["first_download_at"] || $e["n"]!=1) exit(1);'
+php -r 'require "src/Core.php"; $n=Portal\Core::row("SELECT recipient_email,subject FROM notification_queue WHERE kind=? ORDER BY id DESC LIMIT 1",["download"]); if (!$n || $n["recipient_email"]!=="caniatoa@libero.it" || !str_contains($n["subject"],"Alice")) exit(1);'
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["max_downloads"]);'
+curl -s -b alice.cookie 'http://localhost:8000/?tab=archive' > limited.html
+grep -q 'Download: 1 / 1' limited.html && grep -q 'Non accessibile' limited.html || { echo 'Download limit not visible to client'; exit 1; }
 status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Download limit bypassed: $status"; exit 1; }
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET created_at=UTC_TIMESTAMP()-INTERVAL 10 DAY WHERE id=1");'
