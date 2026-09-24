@@ -12,7 +12,7 @@ Se 1 o 2 non sono possibili, fermare l'installazione: cambiare l'architettura/ho
 
 ## Pacchetto, database e configurazione
 
-1. Scaricare l'artefatto **`portale-clienti-tophost`** dall'ultima esecuzione riuscita di **Portal release package** in GitHub Actions sul ramo `area-clienti-portale`. Contiene la libreria email già installata (`vendor/`) e non contiene credenziali, `config.php` né database demo.
+1. Scaricare l'artefatto **`portale-clienti-tophost`** dall'ultima esecuzione riuscita di **Portal checks** in GitHub Actions sul ramo `area-clienti-portale`. Contiene la libreria email già installata (`vendor/`) e non contiene credenziali, `config.php` né database demo.
 2. Caricare l'applicazione in una cartella privata e far puntare la radice web del portale a `portale-clienti/public/`. In `public/` devono essere visibili soltanto `index.php`, `portal.js`, `style.css`, `assets/` e `.htaccess`.
 3. Creare un database **nuovo e vuoto** e importare **soltanto** `portale-clienti/sql/schema.sql`. Su un database già in uso seguire le migrazioni documentate in `README.md` dopo backup; non importare lo schema da capo.
 4. Nella cartella privata copiare `config.example.php` in `config.php`. Inserire DSN, utente e password del database Tophost; `base_url` con l'indirizzo HTTPS definitivo del portale, `site_url` con `https://caniatoautomazione.com/`, `privacy_url` con l'informativa **definitiva e pubblicata**, `storage_path` in una cartella privata esistente e scrivibile; `admin_email`, mittente e parametri SMTP effettivi. Impostare `capacity_bytes` soltanto dopo aver verificato quanta quota è davvero disponibile per i documenti; con `null` l'allerta a 2 GiB è disattivata.
