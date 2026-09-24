@@ -18,6 +18,8 @@ if (!str_contains((string)$roleType['Type'],'operator')) {
 }
 $settings=$pdo->query("SHOW TABLES LIKE 'portal_settings'")->fetch();
 if (!$settings) $pdo->exec(file_get_contents(dirname(__DIR__).'/sql/003-document-settings.sql'));
+$accessColumn=$pdo->query("SHOW COLUMNS FROM documents LIKE 'manual_access'")->fetch();
+if (!$accessColumn) foreach (explode("\n",file_get_contents(dirname(__DIR__).'/sql/004-document-access.sql')) as $line) { $line=trim($line); if ($line!==''&&!str_starts_with($line,'--'))$pdo->exec($line); }
 // La sostituzione del vincolo è consentita soltanto nella banca dati fittizia Codespaces.
 $check=$pdo->query("SHOW CREATE TABLE users")->fetch();
 if (str_contains((string)$check['Create Table'],'caniatoa@libero.it')) {
