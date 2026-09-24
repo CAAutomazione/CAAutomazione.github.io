@@ -33,20 +33,31 @@ status=$(curl -s -b alice.cookie -o delivered.txt -w '%{http_code}' "http://loca
 [ "$status" = 200 ] && [ "$(cat delivered.txt)" = 'private test document' ] || { echo "Authorized download failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT first_download_at FROM documents WHERE id=1"); $e=Portal\Core::row("SELECT COUNT(*) n FROM download_events WHERE document_id=1"); if (!$d["first_download_at"] || $e["n"]!=1) exit(1);'
 php -r 'require "src/Core.php"; $n=Portal\Core::row("SELECT recipient_email,subject FROM notification_queue WHERE kind=? ORDER BY id DESC LIMIT 1",["download"]); if (!$n || $n["recipient_email"]!=="caniatoa@libero.it" || !str_contains($n["subject"],"Alice")) exit(1);'
-php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["max_downloads"]);'
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE documents SET max_downloads=1 WHERE id=1"); Portal\Core::exec("UPDATE portal_settings SET value_int=2 WHERE setting_key=?",["max_downloads"]);'
+php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT max_downloads FROM documents WHERE id=1");if($d["max_downloads"]!=1)exit(1);'
 curl -s -b alice.cookie 'http://localhost:8000/?tab=archive' > limited.html
 grep -q 'Download: 1 / 1' limited.html && grep -q 'Non accessibile' limited.html || { echo 'Download limit not visible to client'; exit 1; }
 status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Download limit bypassed: $status"; exit 1; }
-php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET created_at=UTC_TIMESTAMP()-INTERVAL 10 DAY WHERE id=1");'
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=1 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET max_downloads=0,retention_days=1,created_at=UTC_TIMESTAMP()-INTERVAL 10 DAY WHERE id=1");'
 status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=view&id=$id")
 [ "$status" = 404 ] || { echo "Document retention bypassed: $status"; exit 1; }
-php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET created_at=UTC_TIMESTAMP() WHERE id=1");'
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["retention_days"]); Portal\Core::exec("UPDATE documents SET retention_days=0,created_at=UTC_TIMESTAMP() WHERE id=1");'
 php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE documents SET revoked_at=UTC_TIMESTAMP() WHERE id=1");'
 status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localhost:8000/?action=download&id=$id")
 [ "$status" = 404 ] || { echo "Revoked document still available: $status"; exit 1; }
 php -r 'require "src/Core.php"; try { Portal\Core::exec("INSERT INTO users(first_name,last_name,email,password_hash,role) VALUES(?,?,?,?,?)", ["Eve","Other","other@example.invalid","hash","admin"]); exit(1); } catch (PDOException $e) { exit(0); }'
 login operator@example.invalid operator.cookie
+curl -s -b operator.cookie 'http://localhost:8000/?tab=documents' > operator-documents.html
+operator_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' operator-documents.html | head -1)
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$operator_token&id=$id&accessible=1" 'http://localhost:8000/?action=set_access')
+[ "$status" = 303 ] || { echo 'Manual re-enable failed'; exit 1; }
+status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=view&id=$id")
+[ "$status" = 200 ] || { echo 'Manual access does not restore document'; exit 1; }
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$operator_token&id=$id&accessible=0" 'http://localhost:8000/?action=set_access')
+[ "$status" = 303 ] || { echo 'Manual disable failed'; exit 1; }
+status=$(curl -s -b alice.cookie -o /dev/null -w '%{http_code}' "http://localhost:8000/?action=view&id=$id")
+[ "$status" = 404 ] || { echo 'Manual access block bypassed'; exit 1; }
 curl -s -b operator.cookie http://localhost:8000/?tab=accounts > operator.html
 if grep -q 'Nuovo account cliente' operator.html; then echo 'Operator can see customer management'; exit 1; fi
 operator_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' operator.html | head -1)
@@ -62,6 +73,7 @@ printf 'first folder test' > "$folder_file_a"
 printf 'second folder test' > "$folder_file_b"
 folder_client=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT id FROM users WHERE email=?",["alice@example.invalid"])["id"];')
 folder_plant=$(php -r 'require "src/Core.php"; echo Portal\Core::row("SELECT plant_id FROM user_plants WHERE user_id=?",[(int)$argv[1]])["plant_id"];' "$folder_client")
+php -r 'require "src/Core.php"; Portal\Core::exec("UPDATE portal_settings SET value_int=3 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=7 WHERE setting_key=?",["retention_days"]);'
 status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' \
   -F "_csrf=$operator_token" -F "recipient_id=$folder_client" -F "plant_id=$folder_plant" \
   -F 'upload_mode=folder' -F 'expected_files=2' \
@@ -70,6 +82,7 @@ status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' \
   'http://localhost:8000/?action=upload')
 rm -f "$folder_file_a" "$folder_file_b"
 [ "$status" = 303 ] || { echo "Folder upload failed: $status"; exit 1; }
+php -r 'require "src/Core.php"; $d=Portal\Core::row("SELECT max_downloads,retention_days FROM documents WHERE title LIKE ? LIMIT 1",["Prova / %"]);if (!$d || $d["max_downloads"]!=3 || $d["retention_days"]!=7)exit(1); Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["max_downloads"]); Portal\Core::exec("UPDATE portal_settings SET value_int=0 WHERE setting_key=?",["retention_days"]); $d=Portal\Core::row("SELECT max_downloads,retention_days FROM documents WHERE title LIKE ? LIMIT 1",["Prova / %"]);if ($d["max_downloads"]!=3 || $d["retention_days"]!=7)exit(1);'
 php -r 'require "src/Core.php"; $docs=Portal\Core::row("SELECT COUNT(*) n FROM documents WHERE recipient_id=?",[(int)$argv[1]]);$mail=Portal\Core::row("SELECT COUNT(*) n FROM notification_queue WHERE kind=?",["new_document"]);if($docs["n"]<3||$mail["n"]!=1)exit(1);' "$folder_client"
 upload_sample=$(mktemp)
 printf 'single upload test' > "$upload_sample"
