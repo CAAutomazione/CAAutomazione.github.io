@@ -124,9 +124,13 @@ status=$(curl -s -b alice.cookie -o denied.txt -w '%{http_code}' "http://localho
 php -r 'require "src/Core.php"; $u=Portal\Core::row("SELECT privacy_accepted_at FROM users WHERE email=?",["alice@example.invalid"]); $e=Portal\Core::row("SELECT COUNT(*) n FROM access_events WHERE user_id=(SELECT id FROM users WHERE email=?)",["alice@example.invalid"]); if (!$u["privacy_accepted_at"] || $e["n"]!=2) exit(1);'
 php -r '$p=new PDO("mysql:host=127.0.0.1;charset=utf8mb4","root","testpass");$p->exec("CREATE DATABASE portal_setup_test CHARACTER SET utf8mb4");$p->exec("USE portal_setup_test");foreach(explode("\n",file_get_contents("sql/schema.sql")) as $line){$line=trim($line);if($line!=="")$p->exec($line);}'
 sed -i 's/dbname=portal_test;/dbname=portal_setup_test;/' config.php
+kill "$server" 2>/dev/null || true
+wait "$server" 2>/dev/null || true
+php -S localhost:8000 -t public > server-test.log 2>&1 & server=$!
+for i in {1..20}; do curl -fsS http://localhost:8000/ >/dev/null && break || sleep 1; done
 curl -s -c setup.cookie -b setup.cookie 'http://localhost:8000/?action=setup' > setup.html
 setup_token=$(sed -n 's/.*name="_csrf" value="\([a-f0-9]*\)".*/\1/p' setup.html | head -1)
-[ -n "$setup_token" ] || { echo 'One-time setup form missing'; exit 1; }
+[ -n "$setup_token" ] || { echo 'One-time setup form missing'; head -c 400 setup.html; exit 1; }
 status=$(curl -s -c setup.cookie -b setup.cookie -o /dev/null -w '%{http_code}' -d "_csrf=$setup_token" --data-urlencode 'setup_secret=test-only-setup-at-least-thirty-two-chars' --data-urlencode 'first_name=Test' --data-urlencode 'last_name=Admin' --data-urlencode 'password=test-password-1234' 'http://localhost:8000/?action=setup')
 [ "$status" = 303 ] || { echo "One-time setup failed: $status"; exit 1; }
 status=$(curl -s -o /dev/null -w '%{http_code}' 'http://localhost:8000/?action=setup')
