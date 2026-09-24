@@ -9,6 +9,9 @@ id=$(php tests/seed.php)
 php -S localhost:8000 -t public > server-test.log 2>&1 & server=$!
 trap 'kill "$server" 2>/dev/null || true; rm -f config.php server-test.log' EXIT
 for i in {1..20}; do curl -fsS http://localhost:8000/ >/dev/null && break || sleep 1; done
+php -r 'require "src/Core.php"; if (!Portal\Core::rateLimit("test","limited-identity",2,60) || !Portal\Core::rateLimit("test","limited-identity",2,60) || Portal\Core::rateLimit("test","limited-identity",2,60)) exit(1);'
+curl -s -D security-headers.txt -o /dev/null http://localhost:8000/
+grep -qi 'Content-Security-Policy:.*script-src' security-headers.txt && grep -qi 'X-Frame-Options: DENY' security-headers.txt || { echo 'Security headers missing'; exit 1; }
 php -r 'require "src/Core.php"; Portal\Core::db()->exec("ALTER TABLE documents DROP COLUMN manual_access, DROP COLUMN max_downloads, DROP COLUMN retention_days");'
 status=$(curl -s -o upgrade.html -w '%{http_code}' http://localhost:8000/)
 [ "$status" = 503 ] && grep -q 'Aggiornamento del database necessario' upgrade.html && ! grep -q 'Warning:' upgrade.html || { echo 'Outdated database does not show a clean upgrade notice'; exit 1; }
