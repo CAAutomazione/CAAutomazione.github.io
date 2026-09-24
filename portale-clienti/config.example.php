@@ -10,7 +10,7 @@ return [
  'capacity_bytes' => null, // confirmed usable quota for this app; null disables quota alerts
  'alert_remaining_bytes' => 2 * 1024 * 1024 * 1024,
  'privacy_version' => '2026-09-23', // update when the linked privacy notice changes
- 'admin_email' => 'CHANGE_ME', 'mail_from' => 'CHANGE_ME',
+ 'admin_email' => 'caniatoa@libero.it', 'mail_from' => 'CHANGE_ME',
  'smtp_host' => 'CHANGE_ME', 'smtp_port' => 587,
  'smtp_user' => 'CHANGE_ME', 'smtp_password' => 'CHANGE_ME',
  'cron_secret' => 'CHANGE_TO_LONG_RANDOM_SECRET',
