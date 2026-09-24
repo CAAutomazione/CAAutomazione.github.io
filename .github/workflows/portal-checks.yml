@@ -37,6 +37,9 @@ jobs:
         run: composer validate --strict
       - name: Check PHP syntax
         run: find portale-clienti -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Install portal dependencies
+        working-directory: portale-clienti
+        run: composer install --no-dev --no-interaction --prefer-dist
       - name: Check document authorization across companies
         working-directory: portale-clienti
         run: bash tests/smoke.sh
