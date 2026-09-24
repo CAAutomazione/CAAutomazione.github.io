@@ -66,6 +66,14 @@ status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' \
 rm -f "$folder_file_a" "$folder_file_b"
 [ "$status" = 303 ] || { echo "Folder upload failed: $status"; exit 1; }
 php -r 'require "src/Core.php"; $docs=Portal\Core::row("SELECT COUNT(*) n FROM documents WHERE recipient_id=?",[(int)$argv[1]]);$mail=Portal\Core::row("SELECT COUNT(*) n FROM notification_queue WHERE kind=?",["new_document"]);if($docs["n"]<3||$mail["n"]!=1)exit(1);' "$folder_client"
+upload_sample=$(mktemp)
+printf 'single upload test' > "$upload_sample"
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' -F "_csrf=$operator_token" -F "recipient_id=$folder_client" -F "plant_id=$folder_plant" -F 'title=Titolo da ignorare' -F "file=@$upload_sample;filename=Rapporto prova.txt;type=text/plain" 'http://localhost:8000/?action=upload')
+[ "$status" = 303 ] || { echo "Default filename upload failed: $status"; exit 1; }
+status=$(curl -s -b operator.cookie -o /dev/null -w '%{http_code}' -F "_csrf=$operator_token" -F "recipient_id=$folder_client" -F "plant_id=$folder_plant" -F 'custom_title=1' -F 'title=Relazione cliente' -F "file=@$upload_sample;filename=Rapporto prova.txt;type=text/plain" 'http://localhost:8000/?action=upload')
+rm -f "$upload_sample"
+[ "$status" = 303 ] || { echo "Custom title upload failed: $status"; exit 1; }
+php -r 'require "src/Core.php"; foreach (["Rapporto prova.txt", "Relazione cliente"] as $title) if (Portal\Core::row("SELECT COUNT(*) n FROM documents WHERE title=?",[$title])["n"]!=1) exit(1);'
 login caniatoa@libero.it admin.cookie
 curl -s -b admin.cookie 'http://localhost:8000/?tab=archive' > admin-archive.html
 if grep -q 'Documenti consegnati' admin-archive.html; then echo 'Duplicate delivered-documents table in archive'; exit 1; fi
