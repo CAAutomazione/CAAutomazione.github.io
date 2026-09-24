@@ -51,6 +51,7 @@
         if (checkbox) checkbox.checked = true;
       }
     });
+    updateArchiveSelection();
   });
   const resetToggle = document.querySelector('.reset-toggle');
   resetToggle?.addEventListener('click', () => {
@@ -60,6 +61,24 @@
     if (!panel.hidden) panel.querySelector('input[type=email]')?.focus();
   });
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('it').trim();
+  const archive = document.querySelector('.archive-card');
+  const archiveCheckboxes = () => [...(archive?.querySelectorAll('tbody input[name="ids[]"]') || [])];
+  const updateArchiveSelection = () => {
+    if (!archive) return;
+    const visible = archiveCheckboxes().filter(input => !input.closest('tr').hidden);
+    const selected = archiveCheckboxes().filter(input => input.checked);
+    const button = archive.querySelector('.archive-select-visible');
+    button.disabled = visible.length === 0;
+    button.textContent = visible.length && visible.every(input => input.checked) ? 'Deseleziona tutti i risultati' : 'Seleziona tutti i risultati';
+    archive.querySelector('.archive-selection-count').textContent = selected.length + ' selezionati · ' + visible.length + ' risultati selezionabili';
+  };
+  archive?.querySelector('.archive-select-visible')?.addEventListener('click', () => {
+    const visible = archiveCheckboxes().filter(input => !input.closest('tr').hidden);
+    const select = !visible.every(input => input.checked);
+    visible.forEach(input => { input.checked = select; });
+    updateArchiveSelection();
+  });
+  archive?.addEventListener('change', event => { if (event.target.matches('input[name="ids[]"]')) updateArchiveSelection(); });
   const params = new URLSearchParams(location.search);
   const key = 'portal-view:' + (params.get('tab') || 'documents');
   const save = () => {
@@ -76,10 +95,15 @@
     rows.forEach(row => {
       const matched = !query || normalize(input.classList.contains('account-search') ? row.querySelector('summary').textContent : row.textContent).includes(query);
       row.hidden = !matched;
+      if (!matched && card === archive) {
+        const checkbox = row.querySelector('input[name="ids[]"]');
+        if (checkbox) checkbox.checked = false;
+      }
       if (matched) count++;
     });
     const label = input.closest('.table-tools').querySelector('.search-count');
     if (label) label.textContent = query ? count + ' risultati' : '';
+    if (card === archive) updateArchiveSelection();
   };
   let previous;
   try { previous = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (_) {}
