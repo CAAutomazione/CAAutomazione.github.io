@@ -53,6 +53,19 @@
     });
     updateArchiveSelection();
   });
+  const company = document.getElementById('company');
+  const plant = document.getElementById('plant');
+  if (company && plant) {
+    const updatePlants = () => {
+      plant.value = '';
+      [...plant.options].forEach(option => { if (option.value) option.hidden = option.dataset.company !== company.value; });
+    };
+    company.addEventListener('change', updatePlants);
+    updatePlants();
+  }
+  document.querySelectorAll('form[data-confirm]').forEach(form => form.addEventListener('submit', event => {
+    if (!confirm(form.dataset.confirm)) event.preventDefault();
+  }));
   const resetToggle = document.querySelector('.reset-toggle');
   resetToggle?.addEventListener('click', () => {
     const panel = document.getElementById('reset-panel');
