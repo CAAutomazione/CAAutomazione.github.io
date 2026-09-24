@@ -7,6 +7,7 @@ return [
  'privacy_url' => 'https://caautomazione.github.io/privacy/', // replace with the actual published privacy policy URL
  'storage_path' => dirname(__DIR__) . '/private-documents', // outside public/ and not web-accessible
  'max_upload_bytes' => 30 * 1024 * 1024,
+ 'max_request_bytes' => 100 * 1024 * 1024, // total size for a folder upload; align web server/PHP limits
  'capacity_bytes' => null, // confirmed usable quota for this app; null disables quota alerts
  'alert_remaining_bytes' => 2 * 1024 * 1024 * 1024,
  'privacy_version' => '2026-09-23', // update when the linked privacy notice changes
