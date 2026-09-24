@@ -53,3 +53,9 @@ Alla prima autenticazione viene richiesta la presa visione dell'informativa priv
 L’amministratore crea gli operatori nella scheda «Clienti e impianti» e può disattivarli, reimpostarne la password o rimuoverli. Le verifiche dei permessi vengono eseguite anche dal server per le richieste inviate direttamente.
 
 Per aggiornare **un database già esistente**, fare prima un backup e verificare gli amministratori presenti: eseguire `sql/002-operator-role.sql` una sola volta. Se l’account amministrativo esistente non ha email `caniatoa@libero.it`, aggiornare prima l’indirizzo dopo averne verificato la titolarità. L’ALTER rifiuta più di un amministratore e indirizzi amministrativi diversi. Non applicare la migrazione a un database creato con lo schema aggiornato. La demo Codespaces gestisce da sé la propria migrazione dei dati fittizi.
+
+## Regole documenti e ambiente di presentazione
+
+La scheda **Impostazioni** dell’amministratore permette di impostare il numero massimo di download per documento e i giorni di accesso dalla data di caricamento. `0` lascia la regola illimitata. Quando un limite è raggiunto, il cliente vede ancora la voce nel proprio elenco ma non può aprire o scaricare il file; l’amministrazione conserva il file finché non lo elimina. I download concorrenti vengono contati sotto blocco del record per rispettare il limite. La gestione tecnica di SMTP, dimensione massima del caricamento, spazio e URL resta nel file `config.php` sul server.
+
+Il database di prova Codespaces è separato dalla produzione: usa un amministratore fittizio con password casuale conservata soltanto in `/private-documents/.demo-admin-login`, cinque aziende, dieci clienti e documenti inventati. Non importare la banca dati di prova sul server reale. Per aggiornare un database reale precedente è necessario applicare anche `sql/003-document-settings.sql` dopo `sql/002-operator-role.sql`, con backup preventivo.
