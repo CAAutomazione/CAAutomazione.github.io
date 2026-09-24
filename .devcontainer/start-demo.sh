@@ -15,7 +15,7 @@ return [
  'capacity_bytes'=>10*1024*1024*1024,
  'alert_remaining_bytes'=>2*1024*1024*1024,
  'privacy_version'=>'2026-09-23',
- 'admin_email'=>'caniatoa@libero.it',
+ 'admin_email'=>'presentazione@example.invalid',
  'mail_from'=>'demo-admin@example.invalid',
  'smtp_host'=>'not-configured.invalid', 'smtp_port'=>587,
  'smtp_user'=>'', 'smtp_password'=>'',
@@ -26,7 +26,7 @@ PHP
 fi
 # Compatibilità con i Codespaces creati prima dell'aggiunta del ruolo operatore.
 if grep -q "'admin_email'=>'demo-admin@example.invalid'" config.php; then
-  sed -i "s/'admin_email'=>'demo-admin@example.invalid'/'admin_email'=>'caniatoa@libero.it'/" config.php
+  sed -i "s/'admin_email'=>'demo-admin@example.invalid'/'admin_email'=>'presentazione@example.invalid'/" config.php
 fi
 composer install --no-dev --no-interaction --prefer-dist
 ready=0
