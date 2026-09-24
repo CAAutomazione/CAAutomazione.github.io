@@ -35,4 +35,5 @@ jobs:
             portale-clienti/bin.php
             portale-clienti/README.md
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 30
