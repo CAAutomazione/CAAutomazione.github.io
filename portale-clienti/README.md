@@ -34,6 +34,12 @@ Applicazione **separata dal sito GitHub Pages**. Non mettere documenti, database
 - L'eliminazione attuale è immediata e singola; definire recupero/retention e backup prima di usare documenti reali.
 - Caricare solo i tipi consentiti dal codice; dimensione massima predefinita 30 MiB, da allineare a `upload_max_filesize` e `post_max_size`.
 
+## Protezione da richieste abusive
+
+Il portale applica limiti atomici nel database: 300 richieste/minuto per IP sul codice PHP, 10 tentativi di login/15 minuti per IP oltre al limite per email, 5 richieste di recupero password/ora per IP, 12 invii di file/10 minuti per account e limiti sulle altre azioni. Gli indirizzi IP usati per i limiti sono memorizzati solo come hash del tipo di operazione e dell'indirizzo; il cron elimina periodicamente le voci scadute. La dimensione massima complessiva di una richiesta POST è predefinita a 100 MiB, ma il limite va impostato anche nel web server e in PHP: quest'ultimo può ricevere il corpo prima che il codice sia eseguito. Header di sicurezza, sessioni con cookie protetti, token CSRF, autorizzazione lato server, archivio non pubblico e limiti su file e cartelle forniscono ulteriori difese.
+
+Prima della pubblicazione verifica che il server esponga soltanto `public/`, che la cartella dei documenti e `config.php` siano fuori dal web, e applica su web server o CDN/WAF limiti di connessioni, richieste e dimensione corpo, protezioni DDoS, log, backup e monitoraggio. Il codice PHP non può fermare un attacco che esaurisce le risorse **prima** di raggiungerlo. Misura i limiti con traffico reale e prova recupero password, login, download e invio email su Tophost; non è stata verificata la disponibilità di funzioni WAF/CDN del piano. Per un database esistente applica dopo backup `sql/005-request-limits.sql` dopo la migrazione 004; la demo Codespaces aggiorna lo schema all'avvio.
+
 ## Account, privacy e accessi
 
 La schermata amministrativa mostra nome, email, azienda, impianti, stato e ultimo accesso; lo storico registra data, indirizzo IP visto dal server e user agent. L'IP **non prova la posizione geografica**. Definire nella privacy policy la conservazione dei log e limitare l'accesso ai soli amministratori.
