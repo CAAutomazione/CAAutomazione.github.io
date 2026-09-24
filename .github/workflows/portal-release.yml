@@ -1,0 +1,39 @@
+name: Portal release package
+on:
+  workflow_dispatch:
+  push:
+    branches: [area-clienti-portale]
+    paths:
+      - 'portale-clienti/**'
+      - '.github/workflows/portal-release.yml'
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, fileinfo
+      - name: Install required libraries
+        working-directory: portale-clienti
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+      - name: Validate production package
+        run: |
+          test ! -e portale-clienti/config.php
+          test -f portale-clienti/vendor/autoload.php
+          find portale-clienti/public portale-clienti/src -name '*.php' -print0 | xargs -0 -n1 php -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portale-clienti-tophost
+          path: |
+            portale-clienti/public/
+            portale-clienti/src/
+            portale-clienti/vendor/
+            portale-clienti/sql/
+            portale-clienti/config.example.php
+            portale-clienti/bin.php
+            portale-clienti/README.md
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30

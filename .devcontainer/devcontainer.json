@@ -1,0 +1,15 @@
+{
+  "name": "Area Clienti · ambiente dimostrativo",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "overrideCommand": false,
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Area Clienti · demo",
+      "onAutoForward": "notify"
+    }
+  }
+}

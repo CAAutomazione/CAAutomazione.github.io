@@ -1,0 +1,16 @@
+/config.php
+/vendor/
+/storage/
+.env
+*.log
+*.cookie
+login.html
+admin.html
+admin.cookie
+denied.txt
+delivered.txt
+server-test.log
+first.cookie
+first-login.html
+remembered.cookie
+remembered-login.html
